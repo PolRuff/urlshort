@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -84,11 +86,18 @@ func TestShortenHandler(t *testing.T) {
 	}
 }
 
+func newRequestWithID(method, id string) *http.Request {
+	req := httptest.NewRequest(method, "/"+id, nil)
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("id", id)
+	return req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+}
+
 func TestRedirectHandler(t *testing.T) {
 	tests := []struct {
 		name             string
 		method           string
-		path             string
+		id               string
 		setup            func()
 		expectedCode     int
 		expectedLocation string
@@ -96,7 +105,7 @@ func TestRedirectHandler(t *testing.T) {
 		{
 			name:   "valid redirect",
 			method: http.MethodGet,
-			path:   "/test123",
+			id:     "test123",
 			setup: func() {
 				shortURLs["test123"] = "https://practicum.yandex.ru/"
 			},
@@ -106,21 +115,21 @@ func TestRedirectHandler(t *testing.T) {
 		{
 			name:         "ID not found",
 			method:       http.MethodGet,
-			path:         "/missing",
+			id:           "missing",
 			setup:        func() {},
 			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name:         "empty ID (root path)",
 			method:       http.MethodGet,
-			path:         "/",
+			id:           "",
 			setup:        func() {},
 			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name:         "POST instead of GET",
 			method:       http.MethodPost,
-			path:         "/test123",
+			id:           "test123",
 			setup:        func() {},
 			expectedCode: http.StatusBadRequest,
 		},
@@ -133,7 +142,7 @@ func TestRedirectHandler(t *testing.T) {
 				tt.setup()
 			}
 
-			req := httptest.NewRequest(tt.method, tt.path, nil)
+			req := newRequestWithID(tt.method, tt.id)
 			w := httptest.NewRecorder()
 
 			RedirectHandler(w, req)

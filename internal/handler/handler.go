@@ -5,9 +5,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/PolRuff/urlshort/internal/config"
+	"github.com/go-chi/chi/v5"
 )
 
 const (
@@ -98,7 +98,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortID := strings.TrimPrefix(r.URL.Path, "/")
+	shortID := chi.URLParam(r, "id")
 	if shortID == "" {
 		http.Error(w, "Empty ID", http.StatusBadRequest)
 		return
