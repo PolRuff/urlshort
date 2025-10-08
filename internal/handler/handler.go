@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/PolRuff/urlshort/internal/config"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -18,6 +17,14 @@ const (
 // shortURLs stores the mapping from short ID to original URL.
 // ⚠️ This map is not thread-safe.
 var shortURLs = make(map[string]string)
+
+// baseURL is the public base URL used to construct short links (e.g. http://localhost:8080)
+var baseURL = "http://localhost:8080"
+
+// SetBaseURL allows main to configure the public base URL
+func SetBaseURL(url string) {
+	baseURL = url
+}
 
 // generateShortID creates a random string of fixed length using crypto/rand
 func generateShortID() (string, error) {
@@ -86,7 +93,8 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	shortURLs[shortID] = originalURL
 
-	shortenedURL := "http://localhost" + config.ServerPort + "/" + shortID
+	// Construct the full short URL using the configured base URL
+	shortenedURL := baseURL + "/" + shortID
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(shortenedURL))

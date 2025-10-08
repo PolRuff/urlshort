@@ -10,6 +10,12 @@ import (
 )
 
 func main() {
+	// Load configuration from command-line flags
+	cfg := config.MustLoad()
+
+	// Configure the base URL used to generate short links
+	handler.SetBaseURL(cfg.BaseURL)
+
 	r := chi.NewRouter()
 
 	// POST / — shorten a URL and return the short link
@@ -18,6 +24,9 @@ func main() {
 	// GET /{id} — redirect to the original URL by short ID
 	r.Get("/{id}", handler.RedirectHandler)
 
-	fmt.Println("Server is running on http://localhost" + config.ServerPort)
-	http.ListenAndServe(config.ServerPort, r)
+	fmt.Printf("Server is running on http://%s\n", cfg.ServerAddr)
+	fmt.Printf("Base URL for short links: %s\n", cfg.BaseURL)
+
+	// Start HTTP server
+	http.ListenAndServe(cfg.ServerAddr, r)
 }
