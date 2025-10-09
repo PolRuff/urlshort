@@ -33,16 +33,10 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var shortID string
-	for {
-		shortID, err = h.generateShortID()
-		if err != nil {
-			http.Error(w, "Failed to generate short ID", http.StatusInternalServerError)
-			return
-		}
-		if _, exists := h.repo.Get(shortID); !exists {
-			break
-		}
+	shortID, err := h.generateShortID()
+	if err != nil {
+		http.Error(w, "Failed to generate short ID", http.StatusInternalServerError)
+		return
 	}
 
 	err = h.repo.Save(model.URLPair{ShortID: shortID, URL: originalURL})

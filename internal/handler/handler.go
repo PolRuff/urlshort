@@ -1,17 +1,34 @@
 package handler
 
 import (
-	"crypto/rand"
 	"net/url"
 	"strings"
+	"sync/atomic"
 
 	"github.com/PolRuff/urlshort/internal/repository"
 )
 
-const (
-	shortIDLength = 8
-	charset       = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-)
+const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+// counter is a global atomic counter for generating unique IDs
+var counter uint64 = 1
+
+// toBase62 converts a uint64 number to a base62 string
+func toBase62(n uint64) string {
+	if n == 0 {
+		return "0"
+	}
+	var result []byte
+	for n > 0 {
+		result = append(result, base62Chars[n%62])
+		n /= 62
+	}
+	// Reverse the slice
+	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+	return string(result)
+}
 
 // Handler processes HTTP requests for URL shortening and redirection
 type Handler struct {
@@ -27,17 +44,10 @@ func New(repo repository.Repository, baseURL string) *Handler {
 	}
 }
 
-// generateShortID creates a random short ID
+// generateShortID returns a unique, deterministic short ID using base62 encoding
 func (h *Handler) generateShortID() (string, error) {
-	bytes := make([]byte, shortIDLength)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
-	}
-	for i := range bytes {
-		bytes[i] = charset[bytes[i]%byte(len(charset))]
-	}
-	return string(bytes), nil
+	n := atomic.AddUint64(&counter, 1)
+	return toBase62(n), nil
 }
 
 // isValidURL checks if a string is a valid HTTP or HTTPS URL
