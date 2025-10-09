@@ -1,17 +1,14 @@
 package config
 
-import (
-	"flag"
-)
+import "flag"
 
-// Config holds the application configuration
+// Config holds application configuration
 type Config struct {
-	ServerAddr string // Address to listen on HTTP-server (flag -a)
-	BaseURL    string // Base URL for shortened links (flag -b)
+	ServerAddr string // server address to listen on (e.g. localhost:8080)
+	BaseURL    string // base URL for shortened links (e.g. http://localhost:8080)
 }
 
-// MustLoad parses command-line flags and returns a Config.
-// Exits the program if required flags are missing or invalid.
+// MustLoad parses command-line flags and returns application config
 func MustLoad() *Config {
 	var (
 		serverAddr = flag.String("a", "localhost:8080", "HTTP server address (e.g. localhost:8888)")
