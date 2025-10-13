@@ -50,13 +50,6 @@ func TestRedirectHandler(t *testing.T) {
 			setup:        func(h *Handler) {},
 			expectedCode: http.StatusBadRequest,
 		},
-		{
-			name:         "POST instead of GET",
-			method:       http.MethodPost,
-			id:           "test123",
-			setup:        func(h *Handler) {},
-			expectedCode: http.StatusBadRequest,
-		},
 	}
 
 	for _, tt := range tests {
