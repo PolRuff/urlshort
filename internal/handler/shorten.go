@@ -20,12 +20,12 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
 		return
 	}
-	r.Body.Close()
 
 	originalURL := string(body)
 
