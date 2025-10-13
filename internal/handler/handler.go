@@ -9,9 +9,6 @@ import (
 
 const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-// counter is a global atomic counter for generating unique IDs
-var counter uint64 = 1
-
 // toBase62 converts a uint64 number to a base62 string
 func toBase62(n uint64) string {
 	if n == 0 {
@@ -33,6 +30,7 @@ func toBase62(n uint64) string {
 type Handler struct {
 	repo    repository.Repository
 	baseURL string
+	counter atomic.Uint64
 }
 
 // New creates a new Handler with the given repository and base URL
@@ -45,6 +43,6 @@ func New(repo repository.Repository, baseURL string) *Handler {
 
 // generateShortID returns a unique, deterministic short ID using base62 encoding
 func (h *Handler) generateShortID() (string, error) {
-	n := atomic.AddUint64(&counter, 1)
+	n := h.counter.Add(1)
 	return toBase62(n), nil
 }
