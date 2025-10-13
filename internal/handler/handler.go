@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"net/url"
 	"strings"
 	"sync/atomic"
 
@@ -48,16 +47,4 @@ func New(repo repository.Repository, baseURL string) *Handler {
 func (h *Handler) generateShortID() (string, error) {
 	n := atomic.AddUint64(&counter, 1)
 	return toBase62(n), nil
-}
-
-// isValidURL checks if a string is a valid HTTP or HTTPS URL
-func (h *Handler) isValidURL(rawURL string) bool {
-	if rawURL == "" {
-		return false
-	}
-	parsed, err := url.Parse(rawURL)
-	if err != nil {
-		return false
-	}
-	return parsed.Scheme == "http" || parsed.Scheme == "https"
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/PolRuff/urlshort/internal/model"
+	"github.com/PolRuff/urlshort/internal/service"
 )
 
 // ShortenHandler shortens a URL from the request body and returns the short link
@@ -28,7 +29,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	originalURL := string(body)
 
-	if !h.isValidURL(originalURL) {
+	if !service.IsValidURL(originalURL) {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
