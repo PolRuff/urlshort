@@ -45,6 +45,13 @@ func TestShortenHandler(t *testing.T) {
 			body:         "",
 			expectedCode: http.StatusBadRequest,
 		},
+		{
+			name:         "request body too large",
+			method:       http.MethodPost,
+			contentType:  "text/plain",
+			body:         strings.Repeat("x", 5*1024), // 5 KB > 4096
+			expectedCode: http.StatusRequestEntityTooLarge,
+		},
 	}
 
 	for _, tt := range tests {

@@ -1,12 +1,15 @@
 package handler
 
 import (
+	"errors"
 	"io"
 	"net/http"
 
 	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/PolRuff/urlshort/internal/service"
 )
+
+const maxRequestBodySize = 4096 // 4 KB — sufficient for any valid URL
 
 // ShortenHandler shortens a URL from the request body and returns the short link
 func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,10 +18,17 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxRequestBodySize)
 	defer r.Body.Close()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+		} else {
+			http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		}
 		return
 	}
 
