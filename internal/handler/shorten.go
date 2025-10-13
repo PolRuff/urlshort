@@ -10,11 +10,6 @@ import (
 
 // ShortenHandler shortens a URL from the request body and returns the short link
 func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Only POST allowed", http.StatusBadRequest)
-		return
-	}
-
 	if r.Header.Get("Content-Type") != "text/plain" {
 		http.Error(w, "Content-Type must be text/plain", http.StatusBadRequest)
 		return

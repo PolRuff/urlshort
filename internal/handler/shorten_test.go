@@ -45,13 +45,6 @@ func TestShortenHandler(t *testing.T) {
 			body:         "",
 			expectedCode: http.StatusBadRequest,
 		},
-		{
-			name:         "GET instead of POST",
-			method:       http.MethodGet,
-			contentType:  "text/plain",
-			body:         "https://example.com",
-			expectedCode: http.StatusBadRequest,
-		},
 	}
 
 	for _, tt := range tests {
