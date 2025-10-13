@@ -41,7 +41,7 @@ func TestRedirectHandler(t *testing.T) {
 			method:       http.MethodGet,
 			id:           "missing",
 			setup:        func(h *Handler) {},
-			expectedCode: http.StatusBadRequest,
+			expectedCode: http.StatusNotFound,
 		},
 		{
 			name:         "empty ID",
