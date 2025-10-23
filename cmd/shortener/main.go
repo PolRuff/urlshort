@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/PolRuff/urlshort/internal/config"
 	"github.com/PolRuff/urlshort/internal/handler"
@@ -11,7 +12,7 @@ import (
 )
 
 func main() {
-	cfg := config.MustLoad()
+	cfg := config.MustLoad(os.Args[1:])
 
 	repo := repository.NewMemoryRepository()
 	h := handler.New(repo, cfg.BaseURL)
