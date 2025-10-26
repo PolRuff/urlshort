@@ -7,6 +7,7 @@ import (
 
 	"github.com/PolRuff/urlshort/internal/config"
 	"github.com/PolRuff/urlshort/internal/handler"
+	"github.com/PolRuff/urlshort/internal/logger"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/go-chi/chi/v5"
 )
@@ -18,6 +19,9 @@ func main() {
 	h := handler.New(repo, cfg.BaseURL)
 
 	r := chi.NewRouter()
+
+	r.Use(logger.Logger)
+
 	r.Post("/", h.ShortenHandler)
 	r.Get("/{id}", h.RedirectHandler)
 
