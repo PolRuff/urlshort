@@ -23,6 +23,7 @@ func main() {
 	r.Use(logger.Logger)
 
 	r.Post("/", h.ShortenHandler)
+	r.Post("/api/shorten", h.ShortenAPIHandler)
 	r.Get("/{id}", h.RedirectHandler)
 
 	fmt.Printf("Server is running on http://%s\n", cfg.ServerAddr)
