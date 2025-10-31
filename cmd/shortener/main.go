@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -16,7 +17,20 @@ import (
 func main() {
 	cfg := config.MustLoad(os.Args[1:])
 
-	repo := repository.NewMemoryRepository()
+	var repo repository.Repository
+	var err error
+
+	if cfg.FileStoragePath != "" {
+		// If a file path is provided, create a FileRepository
+		repo, err = repository.NewFileRepository(cfg.FileStoragePath)
+		if err != nil {
+			log.Fatalf("Failed to initialize file repository: %v", err)
+		}
+	} else {
+		// Otherwise, create an in-memory repository
+		repo = repository.NewMemoryRepository()
+	}
+
 	h := handler.New(repo, cfg.BaseURL)
 
 	r := chi.NewRouter()
