@@ -1,4 +1,4 @@
-package logger
+package middleware
 
 import (
 	"net/http"
@@ -8,20 +8,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// mockHandler is a fake handler for testing the middleware
-type mockHandler struct {
+// mockLoggerHandler is a fake handler for testing the middleware
+type mockLoggerHandler struct {
 	status int
 	body   string
 }
 
-func (h mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h mockLoggerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(h.status)
 	w.Write([]byte(h.body))
 }
 
 func TestLogger(t *testing.T) {
 	// Create a mock handler that returns 201 and a body
-	handler := mockHandler{status: http.StatusCreated, body: "http://localhost:8080/abc123"}
+	handler := mockLoggerHandler{status: http.StatusCreated, body: "http://localhost:8080/abc123"}
 
 	// Wrap the handler with the Logger middleware
 	middleware := Logger(handler)

@@ -13,13 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// mockHandler is a simple handler for testing middleware.
+// mockHandlerGzip is a simple handler for testing GzipMiddleware.
 // It returns the request body as is, with the Content-Type passed as an argument.
-type mockHandler struct {
+type mockHandlerGzip struct {
 	contentType string
 }
 
-func (h *mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *mockHandlerGzip) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read body", http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func TestGzipMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Test the middleware
-		handler := GzipMiddleware(&mockHandler{contentType: "text/plain"})
+		handler := GzipMiddleware(&mockHandlerGzip{contentType: "text/plain"})
 		handler.ServeHTTP(w, req)
 
 		// Check that the response contains the original (decompressed) body
@@ -76,7 +76,7 @@ func TestGzipMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Test the middleware
-		handler := GzipMiddleware(&mockHandler{contentType: "text/plain"})
+		handler := GzipMiddleware(&mockHandlerGzip{contentType: "text/plain"})
 		handler.ServeHTTP(w, req)
 
 		// Check that the response contains the original body
@@ -97,7 +97,7 @@ func TestGzipMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Test the middleware
-		handler := GzipMiddleware(&mockHandler{contentType: "application/json"})
+		handler := GzipMiddleware(&mockHandlerGzip{contentType: "application/json"})
 		handler.ServeHTTP(w, req)
 
 		// Check that the response is compressed
@@ -127,7 +127,7 @@ func TestGzipMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Test the middleware
-		handler := GzipMiddleware(&mockHandler{contentType: "text/html"})
+		handler := GzipMiddleware(&mockHandlerGzip{contentType: "text/html"})
 		handler.ServeHTTP(w, req)
 
 		// Check that the response is compressed
@@ -157,7 +157,7 @@ func TestGzipMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Test the middleware
-		handler := GzipMiddleware(&mockHandler{contentType: "text/plain"})
+		handler := GzipMiddleware(&mockHandlerGzip{contentType: "text/plain"})
 		handler.ServeHTTP(w, req)
 
 		// Check that the response is NOT compressed
@@ -179,7 +179,7 @@ func TestGzipMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Test the middleware
-		handler := GzipMiddleware(&mockHandler{contentType: "application/json"})
+		handler := GzipMiddleware(&mockHandlerGzip{contentType: "application/json"})
 		handler.ServeHTTP(w, req)
 
 		// Check that the response is NOT compressed
@@ -201,7 +201,7 @@ func TestGzipMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Test the middleware
-		handler := GzipMiddleware(&mockHandler{contentType: "text/plain"})
+		handler := GzipMiddleware(&mockHandlerGzip{contentType: "text/plain"})
 		handler.ServeHTTP(w, req)
 
 		// Check that an error is returned (e.g., 400)
