@@ -8,6 +8,7 @@ import (
 	"github.com/PolRuff/urlshort/internal/config"
 	"github.com/PolRuff/urlshort/internal/handler"
 	"github.com/PolRuff/urlshort/internal/logger"
+	"github.com/PolRuff/urlshort/internal/middleware"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/go-chi/chi/v5"
 )
@@ -20,6 +21,7 @@ func main() {
 
 	r := chi.NewRouter()
 
+	r.Use(middleware.GzipMiddleware)
 	r.Use(logger.Logger)
 
 	r.Post("/", h.ShortenHandler)
