@@ -17,6 +17,7 @@ type Config struct {
 // MustLoad parses environment variables and command-line flags (from args) and returns application config.
 // args should be like os.Args[1:].
 // Priority: 1. Environment variables, 2. CLI flags (-a, -b, -f), 3. Default values
+// Panics on fatal errors (e.g., missing required flags/env vars, parse errors).
 func MustLoad(args []string) *Config {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
@@ -28,7 +29,7 @@ func MustLoad(args []string) *Config {
 
 	err := fs.Parse(args)
 	if err != nil {
-		log.Printf("Failed to parse flags: %v", err)
+		log.Fatalf("Failed to parse flags: %v", err)
 	}
 
 	cfg := &Config{
@@ -40,7 +41,14 @@ func MustLoad(args []string) *Config {
 	// Load configuration from environment variables (they take precedence)
 	err = env.Parse(cfg)
 	if err != nil {
-		log.Printf("Failed to parse config from environment: %v. Using flags or defaults.", err)
+		log.Fatalf("Failed to parse config from environment: %v", err)
+	}
+
+	if cfg.ServerAddr == "" {
+		log.Fatal("required flag -a or env SERVER_ADDRESS is missing")
+	}
+	if cfg.BaseURL == "" {
+		log.Fatal("required flag -b or env BASE_URL is missing")
 	}
 
 	return cfg
