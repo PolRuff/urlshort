@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -9,12 +10,12 @@ import (
 	"github.com/PolRuff/urlshort/internal/service"
 )
 
-const maxRequestBodySize = 4096 // 4 KB — sufficient for any valid URL
-
-// ShortenHandler shortens a URL from the request body and returns the short link
-func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Content-Type") != "text/plain" {
-		http.Error(w, "Content-Type must be text/plain", http.StatusBadRequest)
+// ShortenAPIHandler handles POST /api/shorten
+// Expects JSON: {"url": "http://example.com"}
+// Returns JSON: {"result": "http://localhost:8080/abc123"} with status 201
+func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Content-Type") != "application/json" {
+		http.Error(w, "Content-Type must be application/json", http.StatusBadRequest)
 		return
 	}
 
@@ -32,7 +33,13 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalURL := string(body)
+	var req model.ShortenRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	originalURL := req.URL
 
 	if !service.IsValidURL(originalURL) {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
@@ -62,7 +69,14 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortenedURL := h.baseURL + "/" + shortID
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(shortenedURL))
+
+	resp := model.ShortenResponse{
+		Result: shortenedURL,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
