@@ -142,6 +142,10 @@ func (r *FileRepository) Get(shortID string) (string, bool) {
 	return record.OriginalURL, true
 }
 
+func (r *FileRepository) GetMaxID() (uint64, error) {
+	return 0, nil
+}
+
 func (r *FileRepository) CheckConnection(ctx context.Context) bool {
 	return true
 }

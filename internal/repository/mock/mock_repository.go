@@ -76,6 +76,21 @@ func (mr *MockRepositoryMockRecorder) Get(shortID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), shortID)
 }
 
+// GetMaxID mocks base method.
+func (m *MockRepository) GetMaxID() (uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaxID")
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMaxID indicates an expected call of GetMaxID.
+func (mr *MockRepositoryMockRecorder) GetMaxID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxID", reflect.TypeOf((*MockRepository)(nil).GetMaxID))
+}
+
 // Save mocks base method.
 func (m *MockRepository) Save(pair model.URLPair) error {
 	m.ctrl.T.Helper()

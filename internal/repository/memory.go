@@ -36,6 +36,10 @@ func (r *MemoryRepository) Get(shortID string) (string, bool) {
 	return url, ok
 }
 
+func (r *MemoryRepository) GetMaxID() (uint64, error) {
+	return 0, nil
+}
+
 func (r *MemoryRepository) CheckConnection(ctx context.Context) bool {
 	return true
 }

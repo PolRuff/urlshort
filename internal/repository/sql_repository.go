@@ -28,12 +28,40 @@ func NewSQLRepository(databaseDsn string) (*SQLRepository, error) {
 
 // Save stores a URL pair
 func (r *SQLRepository) Save(pair model.URLPair) error {
-	return nil
+	_, err := r.db.ExecContext(context.Background(), "INSERT INTO shortened_urls (short_url, original_url) VALUES ($1, $2)", pair.ShortID, pair.URL)
+
+	return err
 }
 
 // Get retrieves the original URL by short ID
 func (r *SQLRepository) Get(shortID string) (string, bool) {
-	return "", true
+	row := r.db.QueryRowContext(context.Background(), "SELECT original_url FROM shortened_urls WHERE short_url = $1", shortID)
+
+	var originalURL sql.NullString
+	err := row.Scan(&originalURL)
+
+	if err != nil || !originalURL.Valid {
+		return "", false
+	}
+
+	return originalURL.String, true
+}
+
+func (r *SQLRepository) GetMaxID() (uint64, error) {
+	row := r.db.QueryRowContext(context.Background(), "SELECT MAX(id) FROM shortened_urls")
+
+	var maxId sql.NullInt64
+	err := row.Scan(&maxId)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if maxId.Valid {
+		return uint64(maxId.Int64), nil
+	}
+
+	return 0, err
 }
 
 func (r *SQLRepository) CheckConnection(ctx context.Context) bool {
