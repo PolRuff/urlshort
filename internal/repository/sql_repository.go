@@ -6,8 +6,11 @@ import (
 	"time"
 
 	"github.com/PolRuff/urlshort/internal/model"
-
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/lib/pq"
 )
 
 // SQLRepository implements db storage for URL pairs
@@ -19,6 +22,22 @@ type SQLRepository struct {
 func NewSQLRepository(databaseDsn string) (*SQLRepository, error) {
 	db, err := sql.Open("pgx", databaseDsn)
 	if err != nil {
+		return nil, err
+	}
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://./migrations",
+		"postgres", driver)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		db.Close()
 		return nil, err
 	}
 	return &SQLRepository{
