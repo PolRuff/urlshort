@@ -6,7 +6,7 @@ import (
 
 // PingHandler checks the connection to the database
 func (h *Handler) PingHandler(w http.ResponseWriter, r *http.Request) {
-	exists := h.repo.CheckConnection()
+	exists := h.repo.CheckConnection(r.Context())
 	if !exists {
 		http.Error(w, "Failed connection to database", http.StatusInternalServerError)
 		return

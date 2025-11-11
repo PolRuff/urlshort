@@ -36,8 +36,8 @@ func (r *SQLRepository) Get(shortID string) (string, bool) {
 	return "", true
 }
 
-func (r *SQLRepository) CheckConnection() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+func (r *SQLRepository) CheckConnection(ctx context.Context) bool {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	err := r.db.PingContext(ctx)

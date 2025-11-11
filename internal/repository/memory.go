@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"sync"
 
 	"github.com/PolRuff/urlshort/internal/model"
@@ -35,7 +36,7 @@ func (r *MemoryRepository) Get(shortID string) (string, bool) {
 	return url, ok
 }
 
-func (r *MemoryRepository) CheckConnection() bool {
+func (r *MemoryRepository) CheckConnection(ctx context.Context) bool {
 	return true
 }
 

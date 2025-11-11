@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,7 +24,7 @@ func TestPingHandler(t *testing.T) {
 	// Тест 1: CheckConnection возвращает true -> 200 OK
 	t.Run("Connection OK", func(t *testing.T) {
 		// Ожидаем, что CheckConnection будет вызван и вернёт true
-		mockRepo.EXPECT().CheckConnection().Return(true).Times(1)
+		mockRepo.EXPECT().CheckConnection(context.Background()).Return(true).Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		w := httptest.NewRecorder()
@@ -36,7 +37,7 @@ func TestPingHandler(t *testing.T) {
 	// Тест 2: CheckConnection возвращает false -> 500 Internal Server Error
 	t.Run("Connection Failed", func(t *testing.T) {
 		// Ожидаем, что CheckConnection будет вызван и вернёт false
-		mockRepo.EXPECT().CheckConnection().Return(false).Times(1)
+		mockRepo.EXPECT().CheckConnection(context.Background()).Return(false).Times(1)
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		w := httptest.NewRecorder()

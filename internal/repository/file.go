@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"os"
 	"strconv"
@@ -141,7 +142,7 @@ func (r *FileRepository) Get(shortID string) (string, bool) {
 	return record.OriginalURL, true
 }
 
-func (r *FileRepository) CheckConnection() bool {
+func (r *FileRepository) CheckConnection(ctx context.Context) bool {
 	return true
 }
 

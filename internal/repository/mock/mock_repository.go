@@ -5,6 +5,7 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/PolRuff/urlshort/internal/model"
@@ -35,17 +36,17 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // CheckConnection mocks base method.
-func (m *MockRepository) CheckConnection() bool {
+func (m *MockRepository) CheckConnection(ctx context.Context) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckConnection")
+	ret := m.ctrl.Call(m, "CheckConnection", ctx)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // CheckConnection indicates an expected call of CheckConnection.
-func (mr *MockRepositoryMockRecorder) CheckConnection() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CheckConnection(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConnection", reflect.TypeOf((*MockRepository)(nil).CheckConnection))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConnection", reflect.TypeOf((*MockRepository)(nil).CheckConnection), ctx)
 }
 
 // Close mocks base method.
