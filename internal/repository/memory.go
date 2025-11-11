@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"sync"
 
 	"github.com/PolRuff/urlshort/internal/model"
@@ -33,4 +34,12 @@ func (r *MemoryRepository) Get(shortID string) (string, bool) {
 	defer r.mu.RUnlock()
 	url, ok := r.urls[shortID]
 	return url, ok
+}
+
+func (r *MemoryRepository) CheckConnection(ctx context.Context) bool {
+	return true
+}
+
+func (r *MemoryRepository) Close() {
+
 }
