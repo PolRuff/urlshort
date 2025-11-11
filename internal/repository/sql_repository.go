@@ -50,15 +50,15 @@ func (r *SQLRepository) Get(shortID string) (string, bool) {
 func (r *SQLRepository) GetMaxID() (uint64, error) {
 	row := r.db.QueryRowContext(context.Background(), "SELECT MAX(id) FROM shortened_urls")
 
-	var maxId sql.NullInt64
-	err := row.Scan(&maxId)
+	var maxID sql.NullInt64
+	err := row.Scan(&maxID)
 
 	if err != nil {
 		return 0, err
 	}
 
-	if maxId.Valid {
-		return uint64(maxId.Int64), nil
+	if maxID.Valid {
+		return uint64(maxID.Int64), nil
 	}
 
 	return 0, err
