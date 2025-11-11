@@ -140,3 +140,11 @@ func (r *FileRepository) Get(shortID string) (string, bool) {
 	}
 	return record.OriginalURL, true
 }
+
+func (r *FileRepository) CheckConnection() bool {
+	return true
+}
+
+func (r *FileRepository) Close() {
+
+}

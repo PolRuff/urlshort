@@ -34,3 +34,11 @@ func (r *MemoryRepository) Get(shortID string) (string, bool) {
 	url, ok := r.urls[shortID]
 	return url, ok
 }
+
+func (r *MemoryRepository) CheckConnection() bool {
+	return true
+}
+
+func (r *MemoryRepository) Close() {
+
+}

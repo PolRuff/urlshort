@@ -12,6 +12,7 @@ type Config struct {
 	ServerAddr      string `env:"SERVER_ADDRESS"`
 	BaseURL         string `env:"BASE_URL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	DatabaseDsn     string `env:"DATABASE_DSN"`
 }
 
 // MustLoad parses environment variables and command-line flags (from args) and returns application config.
@@ -25,6 +26,7 @@ func MustLoad(args []string) *Config {
 		serverAddr      = fs.String("a", "localhost:8080", "HTTP server address (e.g. localhost:8888)")
 		baseURL         = fs.String("b", "http://localhost:8080", "Base URL for shortened links (e.g. http://localhost:8000)")
 		fileStoragePath = fs.String("f", "./storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
+		databaseDsn     = fs.String("d", "postgres://videos:userpassword@localhost:5432/videos?sslmode=disable", "Data source name (e.g. postgres://user:password@localhost:5432/mydb?sslmode=disable)")
 	)
 
 	err := fs.Parse(args)
@@ -36,6 +38,7 @@ func MustLoad(args []string) *Config {
 		ServerAddr:      *serverAddr,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
+		DatabaseDsn:     *databaseDsn,
 	}
 
 	// Load configuration from environment variables (they take precedence)
@@ -49,6 +52,9 @@ func MustLoad(args []string) *Config {
 	}
 	if cfg.BaseURL == "" {
 		log.Fatal("required flag -b or env BASE_URL is missing")
+	}
+	if cfg.DatabaseDsn == "" {
+		log.Fatal("required flag -d or env DATABASE_DSN is missing")
 	}
 
 	return cfg
