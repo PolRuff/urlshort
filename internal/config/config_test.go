@@ -60,5 +60,5 @@ func TestMustLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "localhost:8080", cfg.ServerAddr)
 	assert.Equal(t, "http://localhost:8080", cfg.BaseURL)
 	assert.Equal(t, "./storage.json", cfg.FileStoragePath)
-	assert.Equal(t, "postgres://videos:userpassword@localhost:5432/videos?sslmode=disable", cfg.DatabaseDsn)
+	assert.Equal(t, "", cfg.DatabaseDsn)
 }
