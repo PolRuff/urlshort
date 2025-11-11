@@ -40,8 +40,8 @@ func New(repo repository.Repository, baseURL string) *Handler {
 		baseURL: strings.TrimRight(baseURL, "/"),
 	}
 
-	maxId, _ := repo.GetMaxID()
-	h.counter.Store(maxId)
+	maxID, _ := repo.GetMaxID()
+	h.counter.Store(maxID)
 
 	return h
 }
