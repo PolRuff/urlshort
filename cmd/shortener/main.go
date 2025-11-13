@@ -53,5 +53,5 @@ func main() {
 	fmt.Printf("Server is running on http://%s\n", cfg.ServerAddr)
 	fmt.Printf("Base URL for short links: %s\n", cfg.BaseURL)
 
-	http.ListenAndServe(cfg.ServerAddr, r)
+	log.Fatal(http.ListenAndServe(cfg.ServerAddr, r))
 }
