@@ -46,6 +46,7 @@ func main() {
 
 	r.Post("/", h.ShortenHandler)
 	r.Post("/api/shorten", h.ShortenAPIHandler)
+	r.Post("/api/shorten/batch", h.ShortenBatchAPIHandler)
 	r.Get("/{id}", h.RedirectHandler)
 	r.Get("/ping", h.PingHandler)
 
