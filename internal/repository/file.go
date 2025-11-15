@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,18 +19,15 @@ type FileRepository struct {
 	filePath string
 	// map[shortID]URLRecord for fast lookup
 	records map[string]model.URLRecord
-	// nextUUIDToAssign is used for generating new UUIDs sequentially
-	nextUUIDToAssign int
-	mu               sync.RWMutex
+	mu      sync.RWMutex
 }
 
 // NewFileRepository creates a new FileRepository.
 // It tries to load existing data from the file if it exists.
 func NewFileRepository(filePath string) (*FileRepository, error) {
 	repo := &FileRepository{
-		filePath:         filePath,
-		records:          make(map[string]model.URLRecord),
-		nextUUIDToAssign: 1, // начинаем с 1
+		filePath: filePath,
+		records:  make(map[string]model.URLRecord),
 	}
 
 	// Try to load existing data from the file
@@ -77,14 +75,9 @@ func (r *FileRepository) loadFromFile() error {
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		return err
-	}
+	err = scanner.Err()
 
-	// Set nextUUIDToAssign to maxUUID + 1
-	r.nextUUIDToAssign = maxUUID + 1
-
-	return nil
+	return err
 }
 
 // Save stores a URL pair and appends it as a new line to the JSONL file.
@@ -93,17 +86,21 @@ func (r *FileRepository) Save(pair model.URLPair) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	maxID, err := r.GetMaxID()
+
+	if err != nil {
+		return err
+	}
+
 	// Create a new URLRecord with a generated UUID
 	record := model.URLRecord{
-		UUID:        strconv.Itoa(r.nextUUIDToAssign),
+		UUID:        strconv.Itoa(int(maxID + 1)),
 		ShortURL:    pair.ShortID,
 		OriginalURL: pair.URL,
 	}
 
 	// Store the record in the map
 	r.records[pair.ShortID] = record
-	// Increment the next UUID counter
-	r.nextUUIDToAssign++
 
 	// Append the new record as a JSON line to the file
 	return r.appendToFile(record)
@@ -143,10 +140,22 @@ func (r *FileRepository) Get(shortID string) (string, bool) {
 }
 
 func (r *FileRepository) GetMaxID() (uint64, error) {
-	return 0, nil
+	return uint64(len(r.records)), nil
 }
 
 func (r *FileRepository) CheckConnection(ctx context.Context) bool {
+	dir := filepath.Dir(r.filePath)
+	testFile := filepath.Join(dir, ".connection_test.tmp")
+	file, err := os.OpenFile(testFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return false
+	}
+
+	defer func() {
+		file.Close()
+		os.Remove(testFile)
+	}()
+
 	return true
 }
 
