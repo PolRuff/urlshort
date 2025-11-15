@@ -6,6 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PolRuff/urlshort/internal/repository"
+	"github.com/PolRuff/urlshort/internal/repository/mock"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,4 +80,42 @@ func TestShortenHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestShortenHandlerConflictError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock.NewMockRepository(ctrl)
+
+	h := &Handler{
+		repo:    mockRepo,
+		baseURL: "http://localhost:8080",
+	}
+
+	existingShortID := "existing_id_123"
+	originalURL := "https://practicum.yandex.ru/"
+
+	conflictErr := &repository.ConflictError{
+		OriginalURL:     originalURL,
+		ExistingShortID: existingShortID,
+	}
+
+	// Ожидаем, что Save будет вызван с любым URLPair, и вернёт ConflictError
+	mockRepo.EXPECT().Get(gomock.Any()).Return("", false).Times(1)
+	mockRepo.EXPECT().Save(gomock.Any()).Return(conflictErr).Times(1)
+
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(originalURL))
+	req.Header.Set("Content-Type", "text/plain")
+	w := httptest.NewRecorder()
+
+	h.ShortenHandler(w, req)
+
+	// Проверяем, что возвращён статус 409 Conflict
+	assert.Equal(t, http.StatusConflict, w.Code)
+	// Проверяем, что Content-Type - text/plain
+	assert.Equal(t, "text/plain", w.Header().Get("Content-Type"))
+	// Проверяем, что тело ответа содержит существующий URL
+	expectedBody := "http://localhost:8080/" + existingShortID
+	assert.Equal(t, expectedBody, w.Body.String())
 }
