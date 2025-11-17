@@ -2,7 +2,8 @@ package config
 
 import (
 	"flag"
-	"log"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -31,7 +32,7 @@ func MustLoad(args []string) *Config {
 
 	err := fs.Parse(args)
 	if err != nil {
-		log.Fatalf("Failed to parse flags: %v", err)
+		log.Error().Err(err).Msg("Failed to parse flags")
 	}
 
 	cfg := &Config{
@@ -44,14 +45,14 @@ func MustLoad(args []string) *Config {
 	// Load configuration from environment variables (they take precedence)
 	err = env.Parse(cfg)
 	if err != nil {
-		log.Fatalf("Failed to parse config from environment: %v", err)
+		log.Error().Err(err).Msg("Failed to parse config from environment")
 	}
 
 	if cfg.ServerAddr == "" {
-		log.Fatal("required flag -a or env SERVER_ADDRESS is missing")
+		log.Error().Msg("required flag -a or env SERVER_ADDRESS is missing")
 	}
 	if cfg.BaseURL == "" {
-		log.Fatal("required flag -b or env BASE_URL is missing")
+		log.Error().Msg("required flag -b or env BASE_URL is missing")
 	}
 
 	return cfg
