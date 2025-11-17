@@ -14,7 +14,7 @@ func (h *Handler) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalURL, exists := h.repo.Get(shortID)
+	originalURL, exists := h.repo.Get(r.Context(), shortID)
 	if !exists {
 		http.Error(w, "Short URL not found", http.StatusNotFound)
 		return

@@ -86,7 +86,7 @@ func TestShortenAPIHandler(t *testing.T) {
 				assert.True(t, strings.HasPrefix(resp.Result, "http://localhost:8080/"))
 
 				shortID := strings.TrimPrefix(resp.Result, "http://localhost:8080/")
-				_, exists := h.repo.Get(shortID)
+				_, exists := h.repo.Get(t.Context(), shortID)
 				assert.True(t, exists, "short ID %q was not saved", shortID)
 			}
 		})
@@ -113,8 +113,8 @@ func TestShortenAPIHandler_ConflictError(t *testing.T) {
 	}
 
 	// Ожидаем, что Save будет вызван с любым URLPair, и вернёт *ConflictError
-	mockRepo.EXPECT().Get(gomock.Any()).Return("", false).Times(1)
-	mockRepo.EXPECT().Save(gomock.Any()).Return(conflictErr).Times(1)
+	mockRepo.EXPECT().Get(gomock.Any(), gomock.Any()).Return("", false).Times(1)
+	mockRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(conflictErr).Times(1)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(`{"url": "`+originalURL+`"}`))
 	req.Header.Set("Content-Type", "application/json")

@@ -8,8 +8,8 @@ import (
 
 // Repository defines the interface for URL storage
 type Repository interface {
-	Save(pair model.URLPair) error
-	Get(shortID string) (string, bool)
+	Save(ctx context.Context, pair model.URLPair) error
+	Get(ctx context.Context, shortID string) (string, bool)
 	GetMaxID() (uint64, error)
 	CheckConnection(ctx context.Context) bool
 	Close()

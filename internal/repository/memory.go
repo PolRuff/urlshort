@@ -21,7 +21,7 @@ func NewMemoryRepository() *MemoryRepository {
 }
 
 // Save stores a URL pair
-func (r *MemoryRepository) Save(pair model.URLPair) error {
+func (r *MemoryRepository) Save(ctx context.Context, pair model.URLPair) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.urls[pair.ShortID] = pair.URL
@@ -29,7 +29,7 @@ func (r *MemoryRepository) Save(pair model.URLPair) error {
 }
 
 // Get retrieves the original URL by short ID
-func (r *MemoryRepository) Get(shortID string) (string, bool) {
+func (r *MemoryRepository) Get(ctx context.Context, shortID string) (string, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	url, ok := r.urls[shortID]

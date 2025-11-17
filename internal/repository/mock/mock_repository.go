@@ -62,18 +62,18 @@ func (mr *MockRepositoryMockRecorder) Close() *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(shortID string) (string, bool) {
+func (m *MockRepository) Get(ctx context.Context, shortID string) (string, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", shortID)
+	ret := m.ctrl.Call(m, "Get", ctx, shortID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(shortID interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(ctx, shortID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), shortID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, shortID)
 }
 
 // GetMaxID mocks base method.
@@ -92,15 +92,15 @@ func (mr *MockRepositoryMockRecorder) GetMaxID() *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockRepository) Save(pair model.URLPair) error {
+func (m *MockRepository) Save(ctx context.Context, pair model.URLPair) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", pair)
+	ret := m.ctrl.Call(m, "Save", ctx, pair)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockRepositoryMockRecorder) Save(pair interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Save(ctx, pair interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), pair)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), ctx, pair)
 }

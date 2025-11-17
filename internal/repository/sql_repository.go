@@ -66,15 +66,15 @@ func NewSQLRepository(databaseDsn string) (*SQLRepository, error) {
 }
 
 // Save stores a URL pair
-func (r *SQLRepository) Save(pair model.URLPair) error {
-	_, err := r.db.ExecContext(context.Background(), "INSERT INTO shortened_urls (short_url, original_url) VALUES ($1, $2)", pair.ShortID, pair.URL)
+func (r *SQLRepository) Save(ctx context.Context, pair model.URLPair) error {
+	_, err := r.db.ExecContext(ctx, "INSERT INTO shortened_urls (short_url, original_url) VALUES ($1, $2)", pair.ShortID, pair.URL)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == pgerrcode.UniqueViolation {
 				var existingShortID string
-				err = r.db.QueryRowContext(context.Background(), "SELECT short_url FROM shortened_urls WHERE original_url = $1", pair.URL).Scan(&existingShortID)
+				err = r.db.QueryRowContext(ctx, "SELECT short_url FROM shortened_urls WHERE original_url = $1", pair.URL).Scan(&existingShortID)
 				if err != nil {
 					return fmt.Errorf("failed to retrieve existing short URL after conflict: %w", err)
 				}
@@ -91,8 +91,8 @@ func (r *SQLRepository) Save(pair model.URLPair) error {
 }
 
 // Get retrieves the original URL by short ID
-func (r *SQLRepository) Get(shortID string) (string, bool) {
-	row := r.db.QueryRowContext(context.Background(), "SELECT original_url FROM shortened_urls WHERE short_url = $1", shortID)
+func (r *SQLRepository) Get(ctx context.Context, shortID string) (string, bool) {
+	row := r.db.QueryRowContext(ctx, "SELECT original_url FROM shortened_urls WHERE short_url = $1", shortID)
 
 	var originalURL sql.NullString
 	err := row.Scan(&originalURL)

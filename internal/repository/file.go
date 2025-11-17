@@ -82,7 +82,7 @@ func (r *FileRepository) loadFromFile() error {
 
 // Save stores a URL pair and appends it as a new line to the JSONL file.
 // It generates a new sequential UUID for the record.
-func (r *FileRepository) Save(pair model.URLPair) error {
+func (r *FileRepository) Save(ctx context.Context, pair model.URLPair) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -128,7 +128,7 @@ func (r *FileRepository) appendToFile(record model.URLRecord) error {
 }
 
 // Get retrieves the original URL by short ID
-func (r *FileRepository) Get(shortID string) (string, bool) {
+func (r *FileRepository) Get(ctx context.Context, shortID string) (string, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

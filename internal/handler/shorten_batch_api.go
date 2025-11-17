@@ -66,7 +66,7 @@ func (h *Handler) ShortenBatchAPIHandler(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Сохраняем в репозиторий
-		err = h.repo.Save(model.URLPair{ShortID: shortID, URL: originalURL})
+		err = h.repo.Save(r.Context(), model.URLPair{ShortID: shortID, URL: originalURL})
 		if err != nil {
 			// Если сохранение не удалось, возвращаем ошибку для всего запроса
 			// В реальности можно было бы обработать ошибки на уровне элемента
