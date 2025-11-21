@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/PolRuff/urlshort/internal/model"
+	"github.com/PolRuff/urlshort/internal/repository"
+	"github.com/PolRuff/urlshort/internal/repository/mock"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,6 +37,14 @@ func TestShortenAPIHandler(t *testing.T) {
 			contentType:    "application/json",
 			body:           `{"url":}`,
 			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   false,
+		},
+		{
+			name:           "request body too large",
+			method:         http.MethodPost,
+			contentType:    "application/json",
+			body:           strings.Repeat("x", 5*1024), // 5 KB > 4096
+			expectedStatus: http.StatusRequestEntityTooLarge,
 			expectedJSON:   false,
 		},
 		{
@@ -75,9 +86,47 @@ func TestShortenAPIHandler(t *testing.T) {
 				assert.True(t, strings.HasPrefix(resp.Result, "http://localhost:8080/"))
 
 				shortID := strings.TrimPrefix(resp.Result, "http://localhost:8080/")
-				_, exists := h.repo.Get(shortID)
+				_, exists := h.repo.Get(t.Context(), shortID)
 				assert.True(t, exists, "short ID %q was not saved", shortID)
 			}
 		})
 	}
+}
+
+func TestShortenAPIHandler_ConflictError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock.NewMockRepository(ctrl)
+
+	h := &Handler{
+		repo:    mockRepo,
+		baseURL: "http://localhost:8080",
+	}
+
+	existingShortID := "existing_id_123"
+	originalURL := "https://practicum.yandex.ru/"
+
+	conflictErr := &repository.ConflictError{
+		OriginalURL:     originalURL,
+		ExistingShortID: existingShortID,
+	}
+
+	// Ожидаем, что Save будет вызван с любым URLPair, и вернёт *ConflictError
+	mockRepo.EXPECT().Get(gomock.Any(), gomock.Any()).Return("", false).Times(1)
+	mockRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(conflictErr).Times(1)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(`{"url": "`+originalURL+`"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	h.ShortenAPIHandler(w, req)
+
+	assert.Equal(t, http.StatusConflict, w.Code)
+	assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+
+	var resp model.ShortenResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, err)
+	assert.Equal(t, "http://localhost:8080/"+existingShortID, resp.Result)
 }

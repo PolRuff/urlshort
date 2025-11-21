@@ -2,7 +2,8 @@ package config
 
 import (
 	"flag"
-	"log"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -12,6 +13,7 @@ type Config struct {
 	ServerAddr      string `env:"SERVER_ADDRESS"`
 	BaseURL         string `env:"BASE_URL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	DatabaseDsn     string `env:"DATABASE_DSN"`
 }
 
 // MustLoad parses environment variables and command-line flags (from args) and returns application config.
@@ -25,30 +27,32 @@ func MustLoad(args []string) *Config {
 		serverAddr      = fs.String("a", "localhost:8080", "HTTP server address (e.g. localhost:8888)")
 		baseURL         = fs.String("b", "http://localhost:8080", "Base URL for shortened links (e.g. http://localhost:8000)")
 		fileStoragePath = fs.String("f", "./storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
+		databaseDsn     = fs.String("d", "", "Data source name (e.g. postgres://urlshort:urlshort@localhost:5432/urlshort?sslmode=disable)")
 	)
 
 	err := fs.Parse(args)
 	if err != nil {
-		log.Fatalf("Failed to parse flags: %v", err)
+		log.Error().Err(err).Msg("Failed to parse flags")
 	}
 
 	cfg := &Config{
 		ServerAddr:      *serverAddr,
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
+		DatabaseDsn:     *databaseDsn,
 	}
 
 	// Load configuration from environment variables (they take precedence)
 	err = env.Parse(cfg)
 	if err != nil {
-		log.Fatalf("Failed to parse config from environment: %v", err)
+		log.Error().Err(err).Msg("Failed to parse config from environment")
 	}
 
 	if cfg.ServerAddr == "" {
-		log.Fatal("required flag -a or env SERVER_ADDRESS is missing")
+		log.Error().Msg("required flag -a or env SERVER_ADDRESS is missing")
 	}
 	if cfg.BaseURL == "" {
-		log.Fatal("required flag -b or env BASE_URL is missing")
+		log.Error().Msg("required flag -b or env BASE_URL is missing")
 	}
 
 	return cfg

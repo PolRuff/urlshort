@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"sync"
 
 	"github.com/PolRuff/urlshort/internal/model"
@@ -20,7 +21,7 @@ func NewMemoryRepository() *MemoryRepository {
 }
 
 // Save stores a URL pair
-func (r *MemoryRepository) Save(pair model.URLPair) error {
+func (r *MemoryRepository) Save(ctx context.Context, pair model.URLPair) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.urls[pair.ShortID] = pair.URL
@@ -28,9 +29,21 @@ func (r *MemoryRepository) Save(pair model.URLPair) error {
 }
 
 // Get retrieves the original URL by short ID
-func (r *MemoryRepository) Get(shortID string) (string, bool) {
+func (r *MemoryRepository) Get(ctx context.Context, shortID string) (string, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	url, ok := r.urls[shortID]
 	return url, ok
+}
+
+func (r *MemoryRepository) GetMaxID() (uint64, error) {
+	return uint64(len(r.urls)), nil
+}
+
+func (r *MemoryRepository) CheckConnection(ctx context.Context) bool {
+	return true
+}
+
+func (r *MemoryRepository) Close() {
+
 }

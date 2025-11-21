@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/PolRuff/urlshort/internal/model"
+	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/PolRuff/urlshort/internal/service"
 )
 
@@ -48,15 +49,23 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, exist := h.repo.Get(shortID)
+		_, exist := h.repo.Get(r.Context(), shortID)
 
 		if !exist {
 			break
 		}
 	}
 
-	err = h.repo.Save(model.URLPair{ShortID: shortID, URL: originalURL})
+	err = h.repo.Save(r.Context(), model.URLPair{ShortID: shortID, URL: originalURL})
 	if err != nil {
+		var conflictErr *repository.ConflictError
+		if errors.As(err, &conflictErr) {
+			existingShortURL := h.baseURL + "/" + conflictErr.ExistingShortID
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte(existingShortURL))
+			return
+		}
 		http.Error(w, "Failed to save URL", http.StatusInternalServerError)
 		return
 	}

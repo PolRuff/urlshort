@@ -31,7 +31,7 @@ func TestRedirectHandler(t *testing.T) {
 			method: http.MethodGet,
 			id:     "test123",
 			setup: func(h *Handler) {
-				h.repo.Save(struct{ ShortID, URL string }{"test123", "https://practicum.yandex.ru/"})
+				h.repo.Save(t.Context(), struct{ ShortID, URL string }{"test123", "https://practicum.yandex.ru/"})
 			},
 			expectedCode:     http.StatusTemporaryRedirect,
 			expectedLocation: "https://practicum.yandex.ru/",

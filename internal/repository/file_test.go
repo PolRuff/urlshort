@@ -25,10 +25,15 @@ func TestFileRepository(t *testing.T) {
 	t.Run("NewFileRepository with non-existent file", func(t *testing.T) {
 		repo, err := NewFileRepository(tempFilePath)
 		require.NoError(t, err)
+		defer func() {
+			exists := repo.CheckConnection(t.Context())
+			assert.True(t, exists)
+			repo.Close()
+		}()
 		assert.NotNil(t, repo)
 
 		// Check that the repository is empty
-		_, exists := repo.Get("nonexistent")
+		_, exists := repo.Get(t.Context(), "nonexistent")
 		assert.False(t, exists)
 	})
 
@@ -56,19 +61,24 @@ func TestFileRepository(t *testing.T) {
 		// Create a new repository; it should load data from the JSONL file
 		repo, err := NewFileRepository(tempFilePath)
 		require.NoError(t, err)
+		defer func() {
+			exists := repo.CheckConnection(t.Context())
+			assert.True(t, exists)
+			repo.Close()
+		}()
 		assert.NotNil(t, repo)
 
 		// Check that the data is loaded
-		url, exists := repo.Get("abc123")
+		url, exists := repo.Get(t.Context(), "abc123")
 		assert.True(t, exists)
 		assert.Equal(t, "http://example.com", url)
 
-		url, exists = repo.Get("def456")
+		url, exists = repo.Get(t.Context(), "def456")
 		assert.True(t, exists)
 		assert.Equal(t, "http://practicum.yandex.ru", url)
 
 		// Check that a non-existent ID is not returned
-		_, exists = repo.Get("nonexistent")
+		_, exists = repo.Get(t.Context(), "nonexistent")
 		assert.False(t, exists)
 
 		// Check that nextUUID is set correctly (max + 1)
@@ -89,6 +99,11 @@ func TestFileRepository(t *testing.T) {
 		// First, reload the repo to get the latest state from the file
 		repo, err := NewFileRepository(tempFilePath)
 		require.NoError(t, err)
+		defer func() {
+			exists := repo.CheckConnection(t.Context())
+			assert.True(t, exists)
+			repo.Close()
+		}()
 
 		// Count lines before save to verify new line is added
 		fileBefore, err := os.Open(tempFilePath)
@@ -105,11 +120,11 @@ func TestFileRepository(t *testing.T) {
 			ShortID: "ghi789",
 			URL:     "http://newsite.com",
 		}
-		err = repo.Save(newPair)
+		err = repo.Save(t.Context(), newPair)
 		require.NoError(t, err)
 
 		// Check that it is available in the repository
-		url, exists := repo.Get("ghi789")
+		url, exists := repo.Get(t.Context(), "ghi789")
 		assert.True(t, exists)
 		assert.Equal(t, "http://newsite.com", url)
 
@@ -154,54 +169,64 @@ func TestFileRepository(t *testing.T) {
 		// After loading, nextUUIDToAssign should be 4.
 		repo, err := NewFileRepository(tempFilePath)
 		require.NoError(t, err)
+		defer func() {
+			exists := repo.CheckConnection(t.Context())
+			assert.True(t, exists)
+			repo.Close()
+		}()
 
 		// Save two more pairs
 		pair1 := model.URLPair{ShortID: "jkl012", URL: "http://site1.com"}
 		pair2 := model.URLPair{ShortID: "mno345", URL: "http://site2.com"}
 
-		err = repo.Save(pair1)
+		err = repo.Save(t.Context(), pair1)
 		require.NoError(t, err)
-		err = repo.Save(pair2)
+		err = repo.Save(t.Context(), pair2)
 		require.NoError(t, err)
 
 		// Check that they are available in the current repo instance
-		url, exists := repo.Get("jkl012")
+		url, exists := repo.Get(t.Context(), "jkl012")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site1.com", url)
 
-		url, exists = repo.Get("mno345")
+		url, exists = repo.Get(t.Context(), "mno345")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site2.com", url)
 
 		// Reload the repo to check persistence
 		reloadRepo, err := NewFileRepository(tempFilePath)
 		require.NoError(t, err)
+		defer func() {
+			exists := repo.CheckConnection(t.Context())
+			assert.True(t, exists)
+			repo.Close()
+		}()
 
 		// Check that the newly saved items are also present after reload
-		url, exists = reloadRepo.Get("jkl012")
+		url, exists = reloadRepo.Get(t.Context(), "jkl012")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site1.com", url)
 
-		url, exists = reloadRepo.Get("mno345")
+		url, exists = reloadRepo.Get(t.Context(), "mno345")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site2.com", url)
 
 		// Check that all previously saved items are still there
-		url, exists = reloadRepo.Get("abc123")
+		url, exists = reloadRepo.Get(t.Context(), "abc123")
 		assert.True(t, exists)
 		assert.Equal(t, "http://example.com", url)
 
-		url, exists = reloadRepo.Get("def456")
+		url, exists = reloadRepo.Get(t.Context(), "def456")
 		assert.True(t, exists)
 		assert.Equal(t, "http://practicum.yandex.ru", url)
 
-		url, exists = reloadRepo.Get("ghi789")
+		url, exists = reloadRepo.Get(t.Context(), "ghi789")
 		assert.True(t, exists)
 		assert.Equal(t, "http://newsite.com", url)
 
 		// Check that nextUUID is correctly tracked internally by saving another and verifying its UUID
 		pair3 := model.URLPair{ShortID: "xyz999", URL: "http://site3.com"}
-		err = reloadRepo.Save(pair3)
+		err = reloadRepo.Save(t.Context(), pair3)
 		require.NoError(t, err)
 
 		// The new record should have UUID 6 (previous max was 3, then 4, then 5 were assigned during saves, next is 6)
@@ -252,8 +277,25 @@ func TestFileRepository(t *testing.T) {
 		// Use the file with data
 		repo, err := NewFileRepository(tempFilePath)
 		require.NoError(t, err)
+		defer func() {
+			exists := repo.CheckConnection(t.Context())
+			assert.True(t, exists)
+			repo.Close()
+		}()
 
-		_, exists := repo.Get("nonexistent")
+		_, exists := repo.Get(t.Context(), "nonexistent")
+		assert.False(t, exists)
+	})
+
+	// Test 6: Get returns false for check connection
+	t.Run("Get returns false for check connection", func(t *testing.T) {
+		nonExistentDir := filepath.Join(tempDir, "non_existent_dir")
+		nonExistentPath := filepath.Join(nonExistentDir, "non_existent_file.json")
+		repo, err := NewFileRepository(nonExistentPath)
+		require.NoError(t, err)
+		defer repo.Close()
+
+		exists := repo.CheckConnection(t.Context())
 		assert.False(t, exists)
 	})
 }

@@ -35,10 +35,15 @@ type Handler struct {
 
 // New creates a new Handler with the given repository and base URL
 func New(repo repository.Repository, baseURL string) *Handler {
-	return &Handler{
+	h := &Handler{
 		repo:    repo,
 		baseURL: strings.TrimRight(baseURL, "/"),
 	}
+
+	maxID, _ := repo.GetMaxID()
+	h.counter.Store(maxID)
+
+	return h
 }
 
 // generateShortID returns a unique, deterministic short ID using base62 encoding
