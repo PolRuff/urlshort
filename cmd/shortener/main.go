@@ -36,7 +36,7 @@ func main() {
 
 	defer repo.Close()
 
-	h := handler.New(repo, cfg.BaseURL)
+	h := handler.New(repo, cfg.BaseURL, cfg.SecretKey)
 
 	r := chi.NewRouter()
 
@@ -46,6 +46,7 @@ func main() {
 	r.Post("/", h.ShortenHandler)
 	r.Post("/api/shorten", h.ShortenAPIHandler)
 	r.Post("/api/shorten/batch", h.ShortenBatchAPIHandler)
+	r.Get("/api/user/urls", h.UserUrlsHandler)
 	r.Get("/{id}", h.RedirectHandler)
 	r.Get("/ping", h.PingHandler)
 

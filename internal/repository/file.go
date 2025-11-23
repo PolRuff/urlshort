@@ -117,6 +117,11 @@ func (r *FileRepository) Get(ctx context.Context, shortID string) (string, bool)
 	return record.OriginalURL, true
 }
 
+func (r *FileRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
+	// TODO: implement
+	return nil, nil
+}
+
 func (r *FileRepository) GetMaxID() (uint64, error) {
 	return uint64(len(r.records)), nil
 }

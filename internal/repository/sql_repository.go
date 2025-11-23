@@ -67,7 +67,7 @@ func NewSQLRepository(databaseDsn string) (*SQLRepository, error) {
 
 // Save stores a URL record
 func (r *SQLRepository) Save(ctx context.Context, record model.URLRecord) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO shortened_urls (short_url, original_url) VALUES ($1, $2)", record.ShortURL, record.OriginalURL)
+	_, err := r.db.ExecContext(ctx, "INSERT INTO shortened_urls (short_url, original_url, user_id) VALUES ($1, $2, $3)", record.ShortURL, record.OriginalURL, record.UserID)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -102,6 +102,34 @@ func (r *SQLRepository) Get(ctx context.Context, shortID string) (string, bool) 
 	}
 
 	return originalURL.String, true
+}
+
+// Get URLs created by user
+func (r *SQLRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
+	userUrls := make([]model.UserUrls, 0)
+	rows, err := r.db.QueryContext(ctx, "SELECT short_url, original_url FROM shortened_urls WHERE user_id = $1", userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var u model.UserUrls
+		err = rows.Scan(&u.ShortURL, &u.OriginalURL)
+		if err != nil {
+			return nil, err
+		}
+		userUrls = append(userUrls, u)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return userUrls, nil
 }
 
 func (r *SQLRepository) GetMaxID() (uint64, error) {

@@ -8,6 +8,7 @@ import (
 	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/PolRuff/urlshort/internal/service"
+	"github.com/rs/zerolog/log"
 )
 
 const maxRequestBodySize = 4096 // 4 KB — sufficient for any valid URL
@@ -40,6 +41,18 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, err := h.getUserID(r)
+
+	if errors.Is(err, http.ErrNoCookie) {
+		log.Debug().Msgf("%s cookie doesn't exist", userIDCookieName)
+	}
+
+	signature := service.SignUserID(userID, []byte(h.signKey))
+	http.SetCookie(w, &http.Cookie{
+		Name:  userIDCookieName,
+		Value: service.EncodeUserIDCookie(userID, signature),
+	})
+
 	var shortID string
 	for {
 		shortID, err = h.generateShortID()
@@ -56,7 +69,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = h.repo.Save(r.Context(), model.URLRecord{ShortURL: shortID, OriginalURL: originalURL})
+	err = h.repo.Save(r.Context(), model.URLRecord{ShortURL: shortID, OriginalURL: originalURL, UserID: userID})
 	if err != nil {
 		var conflictErr *repository.ConflictError
 		if errors.As(err, &conflictErr) {

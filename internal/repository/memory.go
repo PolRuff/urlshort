@@ -36,6 +36,11 @@ func (r *MemoryRepository) Get(ctx context.Context, shortID string) (string, boo
 	return url, ok
 }
 
+func (r *MemoryRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
+	// TODO: implement
+	return nil, nil
+}
+
 func (r *MemoryRepository) GetMaxID() (uint64, error) {
 	return uint64(len(r.urls)), nil
 }

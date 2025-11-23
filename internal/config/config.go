@@ -14,6 +14,7 @@ type Config struct {
 	BaseURL         string `env:"BASE_URL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	DatabaseDsn     string `env:"DATABASE_DSN"`
+	SecretKey       string `env:"SECRET_KEY"`
 }
 
 // MustLoad parses environment variables and command-line flags (from args) and returns application config.
@@ -26,8 +27,9 @@ func MustLoad(args []string) *Config {
 	var (
 		serverAddr      = fs.String("a", "localhost:8080", "HTTP server address (e.g. localhost:8888)")
 		baseURL         = fs.String("b", "http://localhost:8080", "Base URL for shortened links (e.g. http://localhost:8000)")
-		fileStoragePath = fs.String("f", "./storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
+		fileStoragePath = fs.String("f", "/tmp/storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
 		databaseDsn     = fs.String("d", "", "Data source name (e.g. postgres://urlshort:urlshort@localhost:5432/urlshort?sslmode=disable)")
+		secretKey       = fs.String("s", "supersecretkey", "Secret key for symmetrically sign cookie")
 	)
 
 	err := fs.Parse(args)
@@ -40,6 +42,7 @@ func MustLoad(args []string) *Config {
 		BaseURL:         *baseURL,
 		FileStoragePath: *fileStoragePath,
 		DatabaseDsn:     *databaseDsn,
+		SecretKey:       *secretKey,
 	}
 
 	// Load configuration from environment variables (they take precedence)
@@ -53,6 +56,9 @@ func MustLoad(args []string) *Config {
 	}
 	if cfg.BaseURL == "" {
 		log.Error().Msg("required flag -b or env BASE_URL is missing")
+	}
+	if cfg.SecretKey == "supersecretkey" {
+		log.Warn().Msg("used default secret key")
 	}
 
 	return cfg
