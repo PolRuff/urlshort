@@ -1,4 +1,4 @@
--- migrations/000003_000003_add_user_id_column_to_shortened_urls.down.sql
+-- migrations/000003_add_user_id_column_to_shortened_urls.down.sql
 -- Откат создания индекса на user_id
 DROP INDEX IF EXISTS idx_shortened_urls_user_id;
 
