@@ -28,10 +28,10 @@ func (r *MemoryRepository) Save(ctx context.Context, record model.URLRecord) err
 	return nil
 }
 
-func (r *MemoryRepository) Delete(ctx context.Context, deleteUrls model.DeleteUserUrls) error {
+func (r *MemoryRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	//TODO: implement
+	// TODO: implement
 	return nil
 }
 

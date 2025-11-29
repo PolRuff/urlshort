@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 
-	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/PolRuff/urlshort/internal/service"
 	"github.com/rs/zerolog/log"
 )
@@ -38,16 +38,17 @@ func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var deleteUrls model.DeleteUserUrls
-	deleteUrls.UserID = userID
-	if err := json.Unmarshal(body, &deleteUrls.Urls); err != nil {
+	var shordIDs []string
+	if err := json.Unmarshal(body, &shordIDs); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.repo.Delete(r.Context(), deleteUrls); err != nil {
-		log.Error().Msgf("Failed delete: %v", err)
-	}
+	go func() {
+		if err := h.repo.Delete(context.Background(), userID, shordIDs); err != nil {
+			log.Error().Err(err).Msg("Failed to delete URLs")
+		}
+	}()
 
 	signature := service.SignUserID(userID, []byte(h.signKey))
 	http.SetCookie(w, &http.Cookie{

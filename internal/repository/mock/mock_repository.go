@@ -62,17 +62,17 @@ func (mr *MockRepositoryMockRecorder) Close() *gomock.Call {
 }
 
 // Delete mocks base method.
-func (m *MockRepository) Delete(ctx context.Context, urls model.DeleteUserUrls) error {
+func (m *MockRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, urls)
+	ret := m.ctrl.Call(m, "Delete", ctx, userID, shortIDs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockRepositoryMockRecorder) Delete(ctx, urls interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Delete(ctx, userID, shortIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), ctx, urls)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), ctx, userID, shortIDs)
 }
 
 // Get mocks base method.

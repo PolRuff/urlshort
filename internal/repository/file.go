@@ -84,10 +84,10 @@ func (r *FileRepository) Save(ctx context.Context, record model.URLRecord) error
 	return r.appendToFile(record)
 }
 
-func (r *FileRepository) Delete(ctx context.Context, deleteUrls model.DeleteUserUrls) error {
+func (r *FileRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	//TODO: implement
+	// TODO: implement
 	return nil
 }
 

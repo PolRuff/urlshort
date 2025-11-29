@@ -90,8 +90,8 @@ func (r *SQLRepository) Save(ctx context.Context, record model.URLRecord) error 
 	return err
 }
 
-func (r *SQLRepository) Delete(ctx context.Context, deleteUrls model.DeleteUserUrls) error {
-	_, err := r.db.ExecContext(ctx, "UPDATE shortened_urls SET is_deleted = true WHERE user_id = $1 AND short_url = ANY($2)", deleteUrls.UserID, deleteUrls.Urls)
+func (r *SQLRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE shortened_urls SET is_deleted = true WHERE user_id = $1 AND short_url = ANY($2)", userID, shortIDs)
 	return err
 }
 
