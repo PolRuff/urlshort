@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -50,7 +49,6 @@ func (r *FileRepository) loadFromFile() error {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	maxUUID := 0
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -67,12 +65,6 @@ func (r *FileRepository) loadFromFile() error {
 		}
 
 		r.records[record.ShortURL] = record
-		// Parse UUID to int to find the maximum
-		if uuidInt, err := strconv.Atoi(record.UUID); err == nil {
-			if uuidInt > maxUUID {
-				maxUUID = uuidInt
-			}
-		}
 	}
 
 	err = scanner.Err()
@@ -81,20 +73,11 @@ func (r *FileRepository) loadFromFile() error {
 }
 
 // Save stores a URL pair and appends it as a new line to the JSONL file.
-// It generates a new sequential UUID for the record.
 func (r *FileRepository) Save(ctx context.Context, pair model.URLPair) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	maxID, err := r.GetMaxID()
-
-	if err != nil {
-		return err
-	}
-
-	// Create a new URLRecord with a generated UUID
 	record := model.URLRecord{
-		UUID:        strconv.Itoa(int(maxID + 1)),
 		ShortURL:    pair.ShortID,
 		OriginalURL: pair.URL,
 	}
