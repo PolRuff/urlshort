@@ -30,7 +30,6 @@ type URLPair struct {
 
 // URLRecord represents a single record in the JSON file storage
 type URLRecord struct {
-	UUID        string `json:"uuid"`
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
