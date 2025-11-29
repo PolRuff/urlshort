@@ -22,13 +22,7 @@ type BatchShortenResponseItem struct {
 	ShortURL      string `json:"short_url"`      // Результат сокращения
 }
 
-// URLPair represents a mapping between a short ID and an original URL
-type URLPair struct {
-	ShortID string
-	URL     string
-}
-
-// URLRecord represents a single record in the JSON file storage
+// URLRecord represents a single record in the repository
 type URLRecord struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`

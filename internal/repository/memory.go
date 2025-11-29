@@ -7,7 +7,7 @@ import (
 	"github.com/PolRuff/urlshort/internal/model"
 )
 
-// MemoryRepository implements in-memory storage for URL pairs
+// MemoryRepository implements in-memory storage for URL records
 type MemoryRepository struct {
 	urls map[string]string
 	mu   sync.RWMutex
@@ -20,11 +20,11 @@ func NewMemoryRepository() *MemoryRepository {
 	}
 }
 
-// Save stores a URL pair
-func (r *MemoryRepository) Save(ctx context.Context, pair model.URLPair) error {
+// Save stores a URL record
+func (r *MemoryRepository) Save(ctx context.Context, record model.URLRecord) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.urls[pair.ShortID] = pair.URL
+	r.urls[record.ShortURL] = record.OriginalURL
 	return nil
 }
 

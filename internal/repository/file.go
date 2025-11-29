@@ -72,18 +72,13 @@ func (r *FileRepository) loadFromFile() error {
 	return err
 }
 
-// Save stores a URL pair and appends it as a new line to the JSONL file.
-func (r *FileRepository) Save(ctx context.Context, pair model.URLPair) error {
+// Save stores a URL record and appends it as a new line to the JSONL file.
+func (r *FileRepository) Save(ctx context.Context, record model.URLRecord) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	record := model.URLRecord{
-		ShortURL:    pair.ShortID,
-		OriginalURL: pair.URL,
-	}
-
 	// Store the record in the map
-	r.records[pair.ShortID] = record
+	r.records[record.ShortURL] = record
 
 	// Append the new record as a JSON line to the file
 	return r.appendToFile(record)

@@ -33,7 +33,7 @@ func (e *ConflictError) Is(target error) bool {
 	return ok
 }
 
-// SQLRepository implements db storage for URL pairs
+// SQLRepository implements db storage for URL records
 type SQLRepository struct {
 	db *sql.DB
 }
@@ -65,26 +65,26 @@ func NewSQLRepository(databaseDsn string) (*SQLRepository, error) {
 	}, nil
 }
 
-// Save stores a URL pair
-func (r *SQLRepository) Save(ctx context.Context, pair model.URLPair) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO shortened_urls (short_url, original_url) VALUES ($1, $2)", pair.ShortID, pair.URL)
+// Save stores a URL record
+func (r *SQLRepository) Save(ctx context.Context, record model.URLRecord) error {
+	_, err := r.db.ExecContext(ctx, "INSERT INTO shortened_urls (short_url, original_url) VALUES ($1, $2)", record.ShortURL, record.OriginalURL)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == pgerrcode.UniqueViolation {
 				var existingShortID string
-				err = r.db.QueryRowContext(ctx, "SELECT short_url FROM shortened_urls WHERE original_url = $1", pair.URL).Scan(&existingShortID)
+				err = r.db.QueryRowContext(ctx, "SELECT short_url FROM shortened_urls WHERE original_url = $1", record.OriginalURL).Scan(&existingShortID)
 				if err != nil {
 					return fmt.Errorf("failed to retrieve existing short URL after conflict: %w", err)
 				}
 				return &ConflictError{
-					OriginalURL:     pair.URL,
+					OriginalURL:     record.OriginalURL,
 					ExistingShortID: existingShortID,
 				}
 			}
 		}
-		return fmt.Errorf("failed to save URL pair: %w", err)
+		return fmt.Errorf("failed to save URL record: %w", err)
 	}
 
 	return err

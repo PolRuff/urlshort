@@ -92,15 +92,15 @@ func (mr *MockRepositoryMockRecorder) GetMaxID() *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockRepository) Save(ctx context.Context, pair model.URLPair) error {
+func (m *MockRepository) Save(ctx context.Context, record model.URLRecord) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, pair)
+	ret := m.ctrl.Call(m, "Save", ctx, record)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockRepositoryMockRecorder) Save(ctx, pair interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Save(ctx, record interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), ctx, pair)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), ctx, record)
 }
