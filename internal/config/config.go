@@ -27,7 +27,7 @@ func MustLoad(args []string) *Config {
 	var (
 		serverAddr      = fs.String("a", "localhost:8080", "HTTP server address (e.g. localhost:8888)")
 		baseURL         = fs.String("b", "http://localhost:8080", "Base URL for shortened links (e.g. http://localhost:8000)")
-		fileStoragePath = fs.String("f", "/tmp/storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
+		fileStoragePath = fs.String("f", "./storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
 		databaseDsn     = fs.String("d", "", "Data source name (e.g. postgres://urlshort:urlshort@localhost:5432/urlshort?sslmode=disable)")
 		secretKey       = fs.String("s", "supersecretkey", "Secret key for symmetrically sign cookie")
 	)
