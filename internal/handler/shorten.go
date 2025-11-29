@@ -56,7 +56,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = h.repo.Save(r.Context(), model.URLPair{ShortID: shortID, URL: originalURL})
+	err = h.repo.Save(r.Context(), model.URLRecord{ShortURL: shortID, OriginalURL: originalURL})
 	if err != nil {
 		var conflictErr *repository.ConflictError
 		if errors.As(err, &conflictErr) {

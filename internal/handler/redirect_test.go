@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,7 +32,7 @@ func TestRedirectHandler(t *testing.T) {
 			method: http.MethodGet,
 			id:     "test123",
 			setup: func(h *Handler) {
-				h.repo.Save(t.Context(), struct{ ShortID, URL string }{"test123", "https://practicum.yandex.ru/"})
+				h.repo.Save(t.Context(), model.URLRecord{ShortURL: "test123", OriginalURL: "https://practicum.yandex.ru/"})
 			},
 			expectedCode:     http.StatusTemporaryRedirect,
 			expectedLocation: "https://practicum.yandex.ru/",

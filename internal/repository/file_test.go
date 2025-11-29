@@ -103,12 +103,12 @@ func TestFileRepository(t *testing.T) {
 		}
 		fileBefore.Close()
 
-		// Save a new pair
-		newPair := model.URLPair{
-			ShortID: "ghi789",
-			URL:     "http://newsite.com",
+		// Save a new record
+		newRecord := model.URLRecord{
+			ShortURL:    "ghi789",
+			OriginalURL: "http://newsite.com",
 		}
-		err = repo.Save(t.Context(), newPair)
+		err = repo.Save(t.Context(), newRecord)
 		require.NoError(t, err)
 
 		// Check that it is available in the repository
@@ -162,13 +162,13 @@ func TestFileRepository(t *testing.T) {
 			repo.Close()
 		}()
 
-		// Save two more pairs
-		pair1 := model.URLPair{ShortID: "jkl012", URL: "http://site1.com"}
-		pair2 := model.URLPair{ShortID: "mno345", URL: "http://site2.com"}
+		// Save two more records
+		record1 := model.URLRecord{ShortURL: "jkl012", OriginalURL: "http://site1.com"}
+		record2 := model.URLRecord{ShortURL: "mno345", OriginalURL: "http://site2.com"}
 
-		err = repo.Save(t.Context(), pair1)
+		err = repo.Save(t.Context(), record1)
 		require.NoError(t, err)
-		err = repo.Save(t.Context(), pair2)
+		err = repo.Save(t.Context(), record2)
 		require.NoError(t, err)
 
 		// Check that they are available in the current repo instance
@@ -211,8 +211,8 @@ func TestFileRepository(t *testing.T) {
 		assert.True(t, exists)
 		assert.Equal(t, "http://newsite.com", url)
 
-		pair3 := model.URLPair{ShortID: "xyz999", URL: "http://site3.com"}
-		err = reloadRepo.Save(t.Context(), pair3)
+		record3 := model.URLRecord{ShortURL: "xyz999", OriginalURL: "http://site3.com"}
+		err = reloadRepo.Save(t.Context(), record3)
 		require.NoError(t, err)
 
 		fileForCheck, err := os.Open(tempFilePath)

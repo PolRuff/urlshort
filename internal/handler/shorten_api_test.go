@@ -112,7 +112,7 @@ func TestShortenAPIHandler_ConflictError(t *testing.T) {
 		ExistingShortID: existingShortID,
 	}
 
-	// Ожидаем, что Save будет вызван с любым URLPair, и вернёт *ConflictError
+	// Ожидаем, что Save будет вызван с любым URLRecord, и вернёт *ConflictError
 	mockRepo.EXPECT().Get(gomock.Any(), gomock.Any()).Return("", false).Times(1)
 	mockRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(conflictErr).Times(1)
 
