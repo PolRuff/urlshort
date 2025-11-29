@@ -90,18 +90,24 @@ func (r *SQLRepository) Save(ctx context.Context, record model.URLRecord) error 
 	return err
 }
 
+func (r *SQLRepository) Delete(ctx context.Context, deleteUrls model.DeleteUserUrls) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE shortened_urls SET is_deleted = true WHERE user_id = $1 AND short_url = ANY($2)", deleteUrls.UserID, deleteUrls.Urls)
+	return err
+}
+
 // Get retrieves the original URL by short ID
-func (r *SQLRepository) Get(ctx context.Context, shortID string) (string, bool) {
-	row := r.db.QueryRowContext(ctx, "SELECT original_url FROM shortened_urls WHERE short_url = $1", shortID)
+func (r *SQLRepository) Get(ctx context.Context, shortID string) (orignal string, found bool, deleted bool) {
+	row := r.db.QueryRowContext(ctx, "SELECT original_url, is_deleted FROM shortened_urls WHERE short_url = $1", shortID)
 
 	var originalURL sql.NullString
-	err := row.Scan(&originalURL)
+	var isDeleted bool
+	err := row.Scan(&originalURL, &isDeleted)
 
 	if err != nil || !originalURL.Valid {
-		return "", false
+		return "", false, isDeleted
 	}
 
-	return originalURL.String, true
+	return originalURL.String, true, isDeleted
 }
 
 // Get URLs created by user

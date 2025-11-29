@@ -27,6 +27,11 @@ type UserUrls struct {
 	OriginalURL string `json:"original_url"`
 }
 
+type DeleteUserUrls struct {
+	UserID uint32
+	Urls   []string
+}
+
 // URLRecord represents a single record in the repository
 type URLRecord struct {
 	ShortURL    string `json:"short_url"`

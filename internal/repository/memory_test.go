@@ -25,7 +25,7 @@ func TestMemoryRepository_SaveAndGet(t *testing.T) {
 	}
 
 	// Проверим, что URL не существует до сохранения
-	_, exists := repo.Get(t.Context(), record.ShortURL)
+	_, exists, _ := repo.Get(t.Context(), record.ShortURL)
 	assert.False(t, exists, "URL should not exist before saving")
 
 	// Сохраняем
@@ -37,7 +37,7 @@ func TestMemoryRepository_SaveAndGet(t *testing.T) {
 	assert.Equal(t, maxID, uint64(1))
 
 	// Проверим, что URL теперь существует и совпадает
-	storedURL, exists := repo.Get(t.Context(), record.ShortURL)
+	storedURL, exists, _ := repo.Get(t.Context(), record.ShortURL)
 	assert.True(t, exists, "URL should exist after saving")
 	assert.Equal(t, record.OriginalURL, storedURL, "Stored URL should match the saved one")
 }

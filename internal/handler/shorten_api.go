@@ -56,7 +56,7 @@ func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, exist := h.repo.Get(r.Context(), shortID)
+		_, exist, _ := h.repo.Get(r.Context(), shortID)
 
 		if !exist {
 			break

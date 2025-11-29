@@ -84,6 +84,13 @@ func (r *FileRepository) Save(ctx context.Context, record model.URLRecord) error
 	return r.appendToFile(record)
 }
 
+func (r *FileRepository) Delete(ctx context.Context, deleteUrls model.DeleteUserUrls) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	//TODO: implement
+	return nil
+}
+
 // appendToFile writes a single URLRecord as a JSON line to the end of the file
 func (r *FileRepository) appendToFile(record model.URLRecord) error {
 	data, err := json.Marshal(record)
@@ -106,15 +113,17 @@ func (r *FileRepository) appendToFile(record model.URLRecord) error {
 }
 
 // Get retrieves the original URL by short ID
-func (r *FileRepository) Get(ctx context.Context, shortID string) (string, bool) {
+func (r *FileRepository) Get(ctx context.Context, shortID string) (string, bool, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
+	isDeleted := false // TODO: implement
+
 	record, ok := r.records[shortID]
 	if !ok {
-		return "", false
+		return "", false, isDeleted
 	}
-	return record.OriginalURL, true
+	return record.OriginalURL, true, isDeleted
 }
 
 func (r *FileRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
