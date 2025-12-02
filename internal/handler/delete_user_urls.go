@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/PolRuff/urlshort/internal/service"
-	"github.com/rs/zerolog/log"
 )
 
 func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,11 +43,7 @@ func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	go func() {
-		if err := h.repo.Delete(context.Background(), userID, shordIDs); err != nil {
-			log.Error().Err(err).Msg("Failed to delete URLs")
-		}
-	}()
+	go h.userService.DeleteUserUrls(context.Background(), userID, shordIDs)
 
 	signature := service.SignUserID(userID, []byte(h.signKey))
 	http.SetCookie(w, &http.Cookie{

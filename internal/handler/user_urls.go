@@ -22,7 +22,7 @@ func (h *Handler) UserUrlsHandler(w http.ResponseWriter, r *http.Request) {
 		Value: service.EncodeUserIDCookie(userID, signature),
 	})
 
-	userUrls, err := h.repo.GetByUser(r.Context(), userID)
+	userUrls, err := h.userService.GetUserUrls(r.Context(), userID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

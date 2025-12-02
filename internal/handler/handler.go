@@ -32,18 +32,20 @@ func toBase62(n uint64) string {
 
 // Handler processes HTTP requests for URL shortening and redirection
 type Handler struct {
-	repo    repository.Repository
-	baseURL string
-	counter atomic.Uint64
-	signKey string
+	repo        repository.Repository
+	userService service.UserService
+	baseURL     string
+	counter     atomic.Uint64
+	signKey     string
 }
 
 // New creates a new Handler with the given repository and base URL
 func New(repo repository.Repository, baseURL string, signKey string) *Handler {
 	h := &Handler{
-		repo:    repo,
-		baseURL: strings.TrimRight(baseURL, "/"),
-		signKey: signKey,
+		repo:        repo,
+		userService: service.NewUserService(repo),
+		baseURL:     strings.TrimRight(baseURL, "/"),
+		signKey:     signKey,
 	}
 
 	maxID, _ := repo.GetMaxID()
