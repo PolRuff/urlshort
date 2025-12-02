@@ -15,7 +15,7 @@ func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) 
 	userID, err := h.getUserID(r)
 
 	if errors.Is(err, ErrMissingUserID) {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
