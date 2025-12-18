@@ -28,12 +28,25 @@ func (r *MemoryRepository) Save(ctx context.Context, record model.URLRecord) err
 	return nil
 }
 
+func (r *MemoryRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	// TODO: implement
+	return nil
+}
+
 // Get retrieves the original URL by short ID
-func (r *MemoryRepository) Get(ctx context.Context, shortID string) (string, bool) {
+func (r *MemoryRepository) Get(ctx context.Context, shortID string) (string, bool, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
+	isDeleted := false // TODO: implement
 	url, ok := r.urls[shortID]
-	return url, ok
+	return url, ok, isDeleted
+}
+
+func (r *MemoryRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
+	// TODO: implement
+	return nil, nil
 }
 
 func (r *MemoryRepository) GetMaxID() (uint64, error) {

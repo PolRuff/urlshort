@@ -61,19 +61,49 @@ func (mr *MockRepositoryMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRepository)(nil).Close))
 }
 
+// Delete mocks base method.
+func (m *MockRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, userID, shortIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockRepositoryMockRecorder) Delete(ctx, userID, shortIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), ctx, userID, shortIDs)
+}
+
 // Get mocks base method.
-func (m *MockRepository) Get(ctx context.Context, shortID string) (string, bool) {
+func (m *MockRepository) Get(ctx context.Context, shortID string) (string, bool, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, shortID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(bool)
-	return ret0, ret1
+	ret2, _ := ret[2].(bool)
+	return ret0, ret1, ret2
 }
 
 // Get indicates an expected call of Get.
 func (mr *MockRepositoryMockRecorder) Get(ctx, shortID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, shortID)
+}
+
+// GetByUser mocks base method.
+func (m *MockRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUser", ctx, userID)
+	ret0, _ := ret[0].([]model.UserUrls)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUser indicates an expected call of GetByUser.
+func (mr *MockRepositoryMockRecorder) GetByUser(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUser", reflect.TypeOf((*MockRepository)(nil).GetByUser), ctx, userID)
 }
 
 // GetMaxID mocks base method.

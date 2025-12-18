@@ -22,8 +22,14 @@ type BatchShortenResponseItem struct {
 	ShortURL      string `json:"short_url"`      // Результат сокращения
 }
 
+type UserUrls struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
 // URLRecord represents a single record in the repository
 type URLRecord struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
+	UserID      uint32
 }

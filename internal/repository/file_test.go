@@ -33,7 +33,7 @@ func TestFileRepository(t *testing.T) {
 		assert.NotNil(t, repo)
 
 		// Check that the repository is empty
-		_, exists := repo.Get(t.Context(), "nonexistent")
+		_, exists, _ := repo.Get(t.Context(), "nonexistent")
 		assert.False(t, exists)
 	})
 
@@ -69,16 +69,16 @@ func TestFileRepository(t *testing.T) {
 		assert.NotNil(t, repo)
 
 		// Check that the data is loaded
-		url, exists := repo.Get(t.Context(), "abc123")
+		url, exists, _ := repo.Get(t.Context(), "abc123")
 		assert.True(t, exists)
 		assert.Equal(t, "http://example.com", url)
 
-		url, exists = repo.Get(t.Context(), "def456")
+		url, exists, _ = repo.Get(t.Context(), "def456")
 		assert.True(t, exists)
 		assert.Equal(t, "http://practicum.yandex.ru", url)
 
 		// Check that a non-existent ID is not returned
-		_, exists = repo.Get(t.Context(), "nonexistent")
+		_, exists, _ = repo.Get(t.Context(), "nonexistent")
 		assert.False(t, exists)
 	})
 
@@ -112,7 +112,7 @@ func TestFileRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check that it is available in the repository
-		url, exists := repo.Get(t.Context(), "ghi789")
+		url, exists, _ := repo.Get(t.Context(), "ghi789")
 		assert.True(t, exists)
 		assert.Equal(t, "http://newsite.com", url)
 
@@ -172,11 +172,11 @@ func TestFileRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check that they are available in the current repo instance
-		url, exists := repo.Get(t.Context(), "jkl012")
+		url, exists, _ := repo.Get(t.Context(), "jkl012")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site1.com", url)
 
-		url, exists = repo.Get(t.Context(), "mno345")
+		url, exists, _ = repo.Get(t.Context(), "mno345")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site2.com", url)
 
@@ -190,24 +190,24 @@ func TestFileRepository(t *testing.T) {
 		}()
 
 		// Check that the newly saved items are also present after reload
-		url, exists = reloadRepo.Get(t.Context(), "jkl012")
+		url, exists, _ = reloadRepo.Get(t.Context(), "jkl012")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site1.com", url)
 
-		url, exists = reloadRepo.Get(t.Context(), "mno345")
+		url, exists, _ = reloadRepo.Get(t.Context(), "mno345")
 		assert.True(t, exists)
 		assert.Equal(t, "http://site2.com", url)
 
 		// Check that all previously saved items are still there
-		url, exists = reloadRepo.Get(t.Context(), "abc123")
+		url, exists, _ = reloadRepo.Get(t.Context(), "abc123")
 		assert.True(t, exists)
 		assert.Equal(t, "http://example.com", url)
 
-		url, exists = reloadRepo.Get(t.Context(), "def456")
+		url, exists, _ = reloadRepo.Get(t.Context(), "def456")
 		assert.True(t, exists)
 		assert.Equal(t, "http://practicum.yandex.ru", url)
 
-		url, exists = reloadRepo.Get(t.Context(), "ghi789")
+		url, exists, _ = reloadRepo.Get(t.Context(), "ghi789")
 		assert.True(t, exists)
 		assert.Equal(t, "http://newsite.com", url)
 
@@ -250,7 +250,7 @@ func TestFileRepository(t *testing.T) {
 			repo.Close()
 		}()
 
-		_, exists := repo.Get(t.Context(), "nonexistent")
+		_, exists, _ := repo.Get(t.Context(), "nonexistent")
 		assert.False(t, exists)
 	})
 
