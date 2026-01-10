@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/config"
 	"github.com/PolRuff/urlshort/internal/handler"
 	"github.com/PolRuff/urlshort/internal/middleware"
@@ -36,7 +37,16 @@ func main() {
 
 	defer repo.Close()
 
-	h := handler.New(repo, cfg.BaseURL, cfg.SecretKey)
+	var auditSinks []audit.Sink
+	if cfg.AuditFile != "" {
+		auditSinks = append(auditSinks, audit.NewFileSink(cfg.AuditFile))
+	}
+	if cfg.AuditURL != "" {
+		auditSinks = append(auditSinks, audit.NewHTTPSink(cfg.AuditURL))
+	}
+	auditManager := audit.NewManager(auditSinks...)
+
+	h := handler.New(repo, cfg.BaseURL, cfg.SecretKey, auditManager)
 
 	r := chi.NewRouter()
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/PolRuff/urlshort/internal/service"
 )
@@ -32,20 +33,22 @@ func toBase62(n uint64) string {
 
 // Handler processes HTTP requests for URL shortening and redirection
 type Handler struct {
-	repo        repository.Repository
-	userService service.UserService
-	baseURL     string
-	counter     atomic.Uint64
-	signKey     string
+	repo         repository.Repository
+	userService  service.UserService
+	auditManager *audit.Manager
+	baseURL      string
+	counter      atomic.Uint64
+	signKey      string
 }
 
 // New creates a new Handler with the given repository and base URL
-func New(repo repository.Repository, baseURL string, signKey string) *Handler {
+func New(repo repository.Repository, baseURL string, signKey string, auditManager *audit.Manager) *Handler {
 	h := &Handler{
-		repo:        repo,
-		userService: service.NewUserService(repo),
-		baseURL:     strings.TrimRight(baseURL, "/"),
-		signKey:     signKey,
+		repo:         repo,
+		userService:  service.NewUserService(repo),
+		auditManager: auditManager,
+		baseURL:      strings.TrimRight(baseURL, "/"),
+		signKey:      signKey,
 	}
 
 	maxID, _ := repo.GetMaxID()
