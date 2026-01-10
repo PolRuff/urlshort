@@ -15,6 +15,8 @@ type Config struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	DatabaseDsn     string `env:"DATABASE_DSN"`
 	SecretKey       string `env:"SECRET_KEY"`
+	AuditFile       string `env:"AUDIT_FILE"`
+	AuditURL        string `env:"AUDIT_URL"`
 }
 
 // MustLoad parses environment variables and command-line flags (from args) and returns application config.
@@ -30,6 +32,8 @@ func MustLoad(args []string) *Config {
 		fileStoragePath = fs.String("f", "./storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
 		databaseDsn     = fs.String("d", "", "Data source name (e.g. postgres://urlshort:urlshort@localhost:5432/urlshort?sslmode=disable)")
 		secretKey       = fs.String("s", "supersecretkey", "Secret key for symmetrically sign cookie")
+		auditFile       = fs.String("audit-file", "", "Path to the audit log file")
+		auditURL        = fs.String("audit-url", "", "URL of the remote audit log server")
 	)
 
 	err := fs.Parse(args)
@@ -43,6 +47,8 @@ func MustLoad(args []string) *Config {
 		FileStoragePath: *fileStoragePath,
 		DatabaseDsn:     *databaseDsn,
 		SecretKey:       *secretKey,
+		AuditFile:       *auditFile,
+		AuditURL:        *auditURL,
 	}
 
 	// Load configuration from environment variables (they take precedence)
