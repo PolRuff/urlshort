@@ -47,14 +47,5 @@ func (h *HTTPSink) Send(event AuditEvent) error {
 	}
 	defer resp.Body.Close()
 
-	// Проверяем статус ответа.
-	// Обычно для логгирования достаточно 2xx, но можно считать ошибкой и 4xx/5xx.
-	// Для простоты будем считать успешным любой ответ от сервера (даже 400/500),
-	// так как наша задача — отправить сообщение, а не обрабатывать ответ сервера.
-	// Если требуется строгая проверка, можно добавить:
-	// if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-	//     return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	// }
-
 	return nil
 }
