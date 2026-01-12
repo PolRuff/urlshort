@@ -10,7 +10,7 @@ import (
 
 func TestFileSink_Send(t *testing.T) {
 	t.Run("should return error when writing to inaccessible file", func(t *testing.T) {
-		f := audit.NewFileSink("/root/forbidden_file.log") // Путь, куда нет прав на запись
+		f := audit.NewFileSink("/proc/self/fd/9999") // Путь, куда нет прав на запись
 		event := audit.AuditEvent{
 			Timestamp: 12345,
 			Action:    "test",
