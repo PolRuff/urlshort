@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/PolRuff/urlshort/internal/repository/mock"
 	"github.com/golang/mock/gomock"
@@ -87,10 +88,13 @@ func TestShortenHandlerConflictError(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock.NewMockRepository(ctrl)
+	var auditSinks []audit.Sink
+	auditManager := audit.NewManager(auditSinks...)
 
 	h := &Handler{
-		repo:    mockRepo,
-		baseURL: "http://localhost:8080",
+		repo:         mockRepo,
+		auditManager: auditManager,
+		baseURL:      "http://localhost:8080",
 	}
 
 	existingShortID := "existing_id_123"

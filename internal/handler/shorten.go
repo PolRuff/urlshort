@@ -2,9 +2,12 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"time"
 
+	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/PolRuff/urlshort/internal/service"
@@ -42,6 +45,14 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID, err := h.getUserID(r)
+
+	auditEvent := audit.AuditEvent{
+		Timestamp: time.Now().Unix(),
+		Action:    "shorten",
+		UserID:    fmt.Sprintf("%d", userID),
+		URL:       originalURL,
+	}
+	h.auditManager.Notify(auditEvent)
 
 	if errors.Is(err, http.ErrNoCookie) {
 		log.Debug().Msgf("%s cookie doesn't exist", userIDCookieName)

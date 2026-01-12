@@ -5,7 +5,9 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"time"
 
+	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/PolRuff/urlshort/internal/service"
@@ -41,6 +43,13 @@ func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	originalURL := req.URL
+
+	auditEvent := audit.AuditEvent{
+		Timestamp: time.Now().Unix(),
+		Action:    "shorten",
+		URL:       originalURL,
+	}
+	h.auditManager.Notify(auditEvent)
 
 	if !service.IsValidURL(originalURL) {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
