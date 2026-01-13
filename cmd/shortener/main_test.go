@@ -32,13 +32,13 @@ func BenchmarkShorten(b *testing.B) {
 		ts := httptest.NewServer(r)
 		defer ts.Close()
 
-		tsUrl := ts.URL + "/"
-		originalUrl := strings.NewReader("https://practicum.yandex.ru/")
+		tsURL := ts.URL + "/"
+		originalURL := strings.NewReader("https://practicum.yandex.ru/")
 
 		// Запуск бенчмарка
 		b.StartTimer() // возобновляем таймер
 
-		resp, err := http.Post(tsUrl, "text/plain", originalUrl)
+		resp, err := http.Post(tsURL, "text/plain", originalURL)
 		if err != nil {
 			b.Fatalf("Failed to shorten URL: %v", err)
 		}
@@ -62,10 +62,10 @@ func BenchmarkRedirect(b *testing.B) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	tsUrl := ts.URL + "/"
-	originalUrl := strings.NewReader("https://practicum.yandex.ru/")
+	tsURL := ts.URL + "/"
+	originalURL := strings.NewReader("https://practicum.yandex.ru/")
 
-	resp, err := http.Post(tsUrl, "text/plain", originalUrl)
+	resp, err := http.Post(tsURL, "text/plain", originalURL)
 	if err != nil {
 		b.Fatalf("Failed to shorten URL: %v", err)
 	}
@@ -76,11 +76,11 @@ func BenchmarkRedirect(b *testing.B) {
 		b.Fatalf("Failed to read body: %v", err)
 	}
 
-	shortenedUrl := strings.Replace(string(data), "http://localhost:8080", ts.URL, 1)
+	shortenedURL := strings.Replace(string(data), "http://localhost:8080", ts.URL, 1)
 
 	// Запуск бенчмарка
 	for b.Loop() {
-		resp, err = http.Get(shortenedUrl)
+		resp, err = http.Get(shortenedURL)
 		if err != nil {
 			b.Fatalf("Failed to redirect: %v", err)
 		}
