@@ -11,6 +11,8 @@ import (
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+
+	_ "net/http/pprof"
 )
 
 func main() {
@@ -63,6 +65,12 @@ func main() {
 
 	log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
 	log.Debug().Msgf("Base URL for short links: %s", cfg.BaseURL)
+
+	go func() {
+		const pprofPort = ":9090"
+		log.Debug().Msgf("pprof server is running on http://localhost:%s/debug/pprof/", pprofPort)
+		log.Fatal().Err(http.ListenAndServe(pprofPort, nil))
+	}()
 
 	log.Fatal().Err(http.ListenAndServe(cfg.ServerAddr, r))
 }
