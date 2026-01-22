@@ -1,3 +1,4 @@
+// Package model contains data structures used across the application.
 package model
 
 // ShortenRequest represents the JSON request body for /api/shorten
@@ -22,6 +23,7 @@ type BatchShortenResponseItem struct {
 	ShortURL      string `json:"short_url"`      // Результат сокращения
 }
 
+// UserUrls represents a single shortened URL entry in the user's list.
 type UserUrls struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`

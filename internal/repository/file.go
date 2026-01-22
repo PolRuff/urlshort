@@ -1,3 +1,4 @@
+// Package repository provides data storage implementations for the URL shortener.
 package repository
 
 import (
@@ -84,6 +85,8 @@ func (r *FileRepository) Save(ctx context.Context, record model.URLRecord) error
 	return r.appendToFile(record)
 }
 
+// Delete marks the given short URLs as deleted for the specified user.
+// This is a placeholder implementation and needs to be completed.
 func (r *FileRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -126,15 +129,19 @@ func (r *FileRepository) Get(ctx context.Context, shortID string) (string, bool,
 	return record.OriginalURL, true, isDeleted
 }
 
+// GetByUser retrieves all URLs shortened by a specific user.
+// This is a placeholder implementation and needs to be completed.
 func (r *FileRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
 	// TODO: implement
 	return nil, nil
 }
 
+// GetMaxID returns the current count of records as an approximation of the max ID.
 func (r *FileRepository) GetMaxID() (uint64, error) {
 	return uint64(len(r.records)), nil
 }
 
+// CheckConnection verifies that the repository can write to its storage directory.
 func (r *FileRepository) CheckConnection(ctx context.Context) bool {
 	dir := filepath.Dir(r.filePath)
 	testFile := filepath.Join(dir, ".connection_test.tmp")
@@ -151,6 +158,8 @@ func (r *FileRepository) CheckConnection(ctx context.Context) bool {
 	return true
 }
 
+// Close releases any resources held by the repository.
+// For FileRepository, this is a no-op.
 func (r *FileRepository) Close() {
 
 }

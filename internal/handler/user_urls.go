@@ -1,3 +1,4 @@
+// Package handler contains HTTP handlers for the URL shortener service.
 package handler
 
 import (
@@ -8,6 +9,11 @@ import (
 	"github.com/PolRuff/urlshort/internal/service"
 )
 
+// UserUrlsHandler handles GET /api/user/urls requests.
+//
+// It returns a JSON array of all URLs shortened by the authenticated user.
+// If the user has no shortened URLs, it returns 204 No Content.
+// It requires a valid user session (user_id cookie).
 func (h *Handler) UserUrlsHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := h.getUserID(r)
 

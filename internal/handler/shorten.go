@@ -1,3 +1,4 @@
+// Package handler contains HTTP handlers for the URL shortener service.
 package handler
 
 import (
@@ -16,7 +17,15 @@ import (
 
 const maxRequestBodySize = 4096 // 4 KB — sufficient for any valid URL
 
-// ShortenHandler shortens a URL from the request body and returns the short link
+// ShortenHandler handles POST / requests to shorten a URL.
+//
+// It expects a plain text request body containing the original URL.
+// On success, it returns the shortened URL as plain text with status 201 Created.
+//
+// If the URL is already shortened, it returns the existing short URL with status 409 Conflict.
+//
+// This handler also manages user sessions by setting a signed cookie and logs all
+// shorten events to the configured audit sinks.
 func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") != "text/plain" {
 		http.Error(w, "Content-Type must be text/plain", http.StatusBadRequest)

@@ -1,3 +1,4 @@
+// Package repository provides data storage implementations for the URL shortener.
 package repository
 
 import (
@@ -28,6 +29,8 @@ func (r *MemoryRepository) Save(ctx context.Context, record model.URLRecord) err
 	return nil
 }
 
+// Delete marks the given short URLs as deleted for the specified user.
+// This is a placeholder implementation and needs to be completed.
 func (r *MemoryRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -44,19 +47,25 @@ func (r *MemoryRepository) Get(ctx context.Context, shortID string) (string, boo
 	return url, ok, isDeleted
 }
 
+// GetByUser retrieves all URLs shortened by a specific user.
+// This is a placeholder implementation and needs to be completed.
 func (r *MemoryRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
 	// TODO: implement
 	return nil, nil
 }
 
+// GetMaxID returns the current count of records as an approximation of the max ID.
 func (r *MemoryRepository) GetMaxID() (uint64, error) {
 	return uint64(len(r.urls)), nil
 }
 
+// CheckConnection always returns true for in-memory repository.
 func (r *MemoryRepository) CheckConnection(ctx context.Context) bool {
 	return true
 }
 
+// Close releases any resources held by the repository.
+// For MemoryRepository, this is a no-op.
 func (r *MemoryRepository) Close() {
 
 }

@@ -26,6 +26,8 @@ func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	}
 }
 
+// Header returns the http.Header of the underlying ResponseWriter.
+// It allows middleware and handlers to set response headers before WriteHeader is called.
 func (c *compressWriter) Header() http.Header {
 	return c.w.Header()
 }
@@ -98,10 +100,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Read reads decompressed data from the underlying gzip reader.
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Close closes both the original reader and the gzip reader.
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err
