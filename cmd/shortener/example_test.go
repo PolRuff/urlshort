@@ -1,4 +1,3 @@
-// cmd/shortener/example_test.go
 package main
 
 import "fmt"
