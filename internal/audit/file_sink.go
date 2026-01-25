@@ -2,6 +2,7 @@ package audit
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 )
@@ -24,7 +25,7 @@ func (f *FileSink) Send(event AuditEvent) error {
 	// 1. Сериализуем событие вне критической секции
 	data, err := json.Marshal(event)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal audit event: %w", err)
 	}
 	data = append(data, '\n')
 
@@ -34,10 +35,13 @@ func (f *FileSink) Send(event AuditEvent) error {
 
 	file, err := os.OpenFile(f.filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open audit file for writing: %w", err)
 	}
 	defer file.Close()
 
 	_, err = file.Write(data)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to write audit event to file: %w", err)
+	}
+	return nil
 }
