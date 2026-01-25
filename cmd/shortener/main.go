@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"os"
 
@@ -68,8 +69,11 @@ func main() {
 
 	go func() {
 		const pprofPort = ":9090"
-		log.Debug().Msgf("pprof server is running on http://localhost:%s/debug/pprof/", pprofPort)
-		log.Fatal().Err(http.ListenAndServe(pprofPort, nil))
+		log.Debug().Msgf("pprof server is running on http://localhost%s/debug/pprof/", pprofPort)
+
+		if err := http.ListenAndServe(pprofPort, nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error().Err(err).Msg("pprof server failed")
+		}
 	}()
 
 	log.Fatal().Err(http.ListenAndServe(cfg.ServerAddr, r))
