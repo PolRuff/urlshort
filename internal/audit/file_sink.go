@@ -21,6 +21,14 @@ func NewFileSink(filePath string) *FileSink {
 
 // Send writes the audit event as a JSON line to the file
 func (f *FileSink) Send(event AuditEvent) error {
+	// 1. Сериализуем событие вне критической секции
+	data, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	data = append(data, '\n')
+
+	// 2. Критическая секция: только открытие и запись
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -30,14 +38,6 @@ func (f *FileSink) Send(event AuditEvent) error {
 	}
 	defer file.Close()
 
-	// Сериализуем событие в JSON
-	data, err := json.Marshal(event)
-	if err != nil {
-		return err
-	}
-
-	// Добавляем символ новой строки и записываем в файл
-	data = append(data, '\n')
 	_, err = file.Write(data)
 	return err
 }
