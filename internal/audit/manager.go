@@ -1,5 +1,7 @@
 package audit
 
+import "github.com/rs/zerolog/log"
+
 // Manager is the Observable that holds a list of Sinks (Observers)
 type Manager struct {
 	sinks []Sink
@@ -15,8 +17,8 @@ func NewManager(sinks ...Sink) *Manager {
 // Notify sends the audit event to all registered sinks
 func (m *Manager) Notify(event AuditEvent) {
 	for _, sink := range m.sinks {
-		// Игнорируем ошибку от каждого отдельного sink'а,
-		// чтобы сбой одного приёмника не влиял на остальные.
-		_ = sink.Send(event)
+		if err := sink.Send(event); err != nil {
+			log.Error().Err(err).Msg("Failed to send audit event to sink")
+		}
 	}
 }
