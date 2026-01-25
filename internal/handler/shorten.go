@@ -3,9 +3,9 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/PolRuff/urlshort/internal/audit"
@@ -58,7 +58,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	auditEvent := audit.AuditEvent{
 		Timestamp: time.Now().Unix(),
 		Action:    "shorten",
-		UserID:    fmt.Sprintf("%d", userID),
+		UserID:    strconv.FormatUint(uint64(userID), 10),
 		URL:       originalURL,
 	}
 	h.auditManager.Notify(auditEvent)

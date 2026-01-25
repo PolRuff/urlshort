@@ -42,3 +42,17 @@ git fetch template && git checkout template/v2 .github
 - **Clean Architecture**
 - **Hexagonal Architecture**
 - **Layered Architecture**
+
+## Профилирование и оптимизация (Инкремент 17)
+
+Был проведён анализ потребления памяти с помощью `pprof`. Выявлено, что основные аллокации происходят при преобразовании `userID` в строку через `fmt.Sprintf` в хендлере `ShortenHandler`.
+
+**Оптимизация**: замена `fmt.Sprintf("%d", userID)` на `strconv.FormatUint(uint64(userID), 10)`.
+
+**Результат сравнения профилей**:
+```text
+$ go tool pprof -top -diff_base=profiles/base.pprof profiles/result.pprof
+...
+   -0.50MB 24.99% ... fmt.Sprintf
+   -0.50MB 24.99% ... fmt.newPrinter
+...
