@@ -2,8 +2,7 @@ package config
 
 import (
 	"flag"
-
-	"github.com/rs/zerolog/log"
+	"fmt"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -19,11 +18,10 @@ type Config struct {
 	AuditURL        string `env:"AUDIT_URL"`
 }
 
-// MustLoad parses environment variables and command-line flags (from args) and returns application config.
+// Load parses environment variables and command-line flags (from args) and returns application config.
 // args should be like os.Args[1:].
 // Priority: 1. Environment variables, 2. CLI flags (-a, -b, -f), 3. Default values
-// Panics on fatal errors (e.g., missing required flags/env vars, parse errors).
-func MustLoad(args []string) *Config {
+func Load(args []string) (*Config, error) {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	var (
@@ -36,9 +34,8 @@ func MustLoad(args []string) *Config {
 		auditURL        = fs.String("audit-url", "", "URL of the remote audit log server")
 	)
 
-	err := fs.Parse(args)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to parse flags")
+	if err := fs.Parse(args); err != nil {
+		return nil, fmt.Errorf("failed to parse flags: %w", err)
 	}
 
 	cfg := &Config{
@@ -52,20 +49,16 @@ func MustLoad(args []string) *Config {
 	}
 
 	// Load configuration from environment variables (they take precedence)
-	err = env.Parse(cfg)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to parse config from environment")
+	if err := env.Parse(cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse config from environment: %w", err)
 	}
 
 	if cfg.ServerAddr == "" {
-		log.Error().Msg("required flag -a or env SERVER_ADDRESS is missing")
+		return nil, fmt.Errorf("required flag -a or env SERVER_ADDRESS is missing")
 	}
 	if cfg.BaseURL == "" {
-		log.Error().Msg("required flag -b or env BASE_URL is missing")
-	}
-	if cfg.SecretKey == "supersecretkey" {
-		log.Warn().Msg("used default secret key")
+		return nil, fmt.Errorf("required flag -b or env BASE_URL is missing")
 	}
 
-	return cfg
+	return cfg, nil
 }

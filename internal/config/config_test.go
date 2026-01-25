@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestMustLoad_PriorityEnv(t *testing.T) {
+func TestLoad_PriorityEnv(t *testing.T) {
 	// Set environment variables
 	os.Setenv("SERVER_ADDRESS", "0.0.0.0:9090")
 	os.Setenv("BASE_URL", "http://env.com")
@@ -28,8 +29,8 @@ func TestMustLoad_PriorityEnv(t *testing.T) {
 		os.Unsetenv("AUDIT_URL")
 	}()
 
-	// Call MustLoad with flags that should be overridden by env vars
-	cfg := MustLoad([]string{
+	// Call Load with flags that should be overridden by env vars
+	cfg, err := Load([]string{
 		"-a", "localhost:8080",
 		"-b", "http://flag.com",
 		"-f", "/flag/path/storage.json",
@@ -38,6 +39,7 @@ func TestMustLoad_PriorityEnv(t *testing.T) {
 		"-audit-file", "/tmp/flag_audit.log",
 		"-audit-url", "http://flag-audit.local",
 	})
+	require.NoError(t, err, "Load should not return an error")
 
 	assert.Equal(t, "0.0.0.0:9090", cfg.ServerAddr)                                                       // env takes precedence
 	assert.Equal(t, "http://env.com", cfg.BaseURL)                                                        // env takes precedence
@@ -48,7 +50,7 @@ func TestMustLoad_PriorityEnv(t *testing.T) {
 	assert.Equal(t, "https://audit.example.com/logs", cfg.AuditURL)                                       // env takes precedence
 }
 
-func TestMustLoad_PriorityFlag(t *testing.T) {
+func TestLoad_PriorityFlag(t *testing.T) {
 	// Ensure environment variables are not set
 	os.Unsetenv("SERVER_ADDRESS")
 	os.Unsetenv("BASE_URL")
@@ -58,8 +60,8 @@ func TestMustLoad_PriorityFlag(t *testing.T) {
 	os.Unsetenv("AUDIT_FILE")
 	os.Unsetenv("AUDIT_URL")
 
-	// Call MustLoad with flags that override defaults
-	cfg := MustLoad([]string{
+	// Call Load with flags that override defaults
+	cfg, err := Load([]string{
 		"-a", "127.0.0.1:8081",
 		"-b", "http://flag.com",
 		"-f", "/flag/path/storage.json",
@@ -68,6 +70,7 @@ func TestMustLoad_PriorityFlag(t *testing.T) {
 		"-audit-file", "/tmp/flag_audit.log",
 		"-audit-url", "http://flag-audit.local",
 	})
+	require.NoError(t, err, "Load should not return an error")
 
 	assert.Equal(t, "127.0.0.1:8081", cfg.ServerAddr)
 	assert.Equal(t, "http://flag.com", cfg.BaseURL)
@@ -78,7 +81,7 @@ func TestMustLoad_PriorityFlag(t *testing.T) {
 	assert.Equal(t, "http://flag-audit.local", cfg.AuditURL)
 }
 
-func TestMustLoad_Defaults(t *testing.T) {
+func TestLoad_Defaults(t *testing.T) {
 	// Ensure environment variables are not set
 	os.Unsetenv("SERVER_ADDRESS")
 	os.Unsetenv("BASE_URL")
@@ -88,8 +91,9 @@ func TestMustLoad_Defaults(t *testing.T) {
 	os.Unsetenv("AUDIT_FILE")
 	os.Unsetenv("AUDIT_URL")
 
-	// Call MustLoad with no arguments to use defaults
-	cfg := MustLoad([]string{})
+	// Call Load with no arguments to use defaults
+	cfg, err := Load([]string{})
+	require.NoError(t, err, "Load should not return an error")
 
 	assert.Equal(t, "localhost:8080", cfg.ServerAddr)
 	assert.Equal(t, "http://localhost:8080", cfg.BaseURL)

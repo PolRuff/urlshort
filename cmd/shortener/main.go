@@ -17,10 +17,12 @@ import (
 )
 
 func main() {
-	cfg := config.MustLoad(os.Args[1:])
+	cfg, err := config.Load(os.Args[1:])
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to load configuration")
+	}
 
 	var repo repository.Repository
-	var err error
 
 	if cfg.DatabaseDsn != "" {
 		repo, err = repository.NewSQLRepository(cfg.DatabaseDsn)
