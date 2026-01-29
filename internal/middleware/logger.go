@@ -1,3 +1,4 @@
+// Package middleware provides HTTP middleware for the application.
 package middleware
 
 import (
@@ -19,6 +20,7 @@ type loggingResponseWriter struct {
 	responseData *responseData
 }
 
+// Write writes the data to the connection as part of an HTTP reply and captures the response size.
 func (lrw *loggingResponseWriter) Write(b []byte) (int, error) {
 	// write the response using the original http.ResponseWriter
 	size, err := lrw.ResponseWriter.Write(b)
@@ -26,6 +28,7 @@ func (lrw *loggingResponseWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
+// WriteHeader sends an HTTP response header with the provided status code and captures it.
 func (lrw *loggingResponseWriter) WriteHeader(statusCode int) {
 	// write the status code using the original http.ResponseWriter
 	lrw.ResponseWriter.WriteHeader(statusCode)

@@ -1,3 +1,4 @@
+// Package handler contains HTTP handlers for the URL shortener service.
 package handler
 
 import (
@@ -10,6 +11,11 @@ import (
 	"github.com/PolRuff/urlshort/internal/service"
 )
 
+// DeleteUserUrlsHandler handles DELETE /api/user/urls requests.
+//
+// It accepts a JSON array of short URL IDs in the request body and marks them as deleted
+// asynchronously. The handler immediately returns 202 Accepted.
+// It requires a valid user session (user_id cookie).
 func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := h.getUserID(r)
 

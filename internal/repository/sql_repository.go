@@ -1,3 +1,4 @@
+// Package repository provides data storage implementations for the URL shortener.
 package repository
 
 import (
@@ -23,6 +24,7 @@ type ConflictError struct {
 	ExistingShortID string
 }
 
+// Error returns the string representation of the ConflictError.
 func (e *ConflictError) Error() string {
 	return fmt.Sprintf("URL %q already exists with short ID %q", e.OriginalURL, e.ExistingShortID)
 }
@@ -38,7 +40,7 @@ type SQLRepository struct {
 	db *sql.DB
 }
 
-// SQLRepository creates a new db repository
+// NewSQLRepository creates a new db repository
 func NewSQLRepository(databaseDsn string) (*SQLRepository, error) {
 	db, err := sql.Open("pgx", databaseDsn)
 	if err != nil {
@@ -90,6 +92,7 @@ func (r *SQLRepository) Save(ctx context.Context, record model.URLRecord) error 
 	return err
 }
 
+// Delete marks the given short URLs as deleted for the specified user by setting is_deleted=true.
 func (r *SQLRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE shortened_urls SET is_deleted = true WHERE user_id = $1 AND short_url = ANY($2)", userID, shortIDs)
 	return err
@@ -110,7 +113,7 @@ func (r *SQLRepository) Get(ctx context.Context, shortID string) (orignal string
 	return originalURL.String, true, isDeleted
 }
 
-// Get URLs created by user
+// GetByUser retrieves all URLs shortened by a specific user.
 func (r *SQLRepository) GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error) {
 	userUrls := make([]model.UserUrls, 0)
 	rows, err := r.db.QueryContext(ctx, "SELECT short_url, original_url FROM shortened_urls WHERE user_id = $1", userID)
@@ -138,6 +141,7 @@ func (r *SQLRepository) GetByUser(ctx context.Context, userID uint32) ([]model.U
 	return userUrls, nil
 }
 
+// GetMaxID returns the maximum ID from the shortened_urls table.
 func (r *SQLRepository) GetMaxID() (uint64, error) {
 	row := r.db.QueryRowContext(context.Background(), "SELECT MAX(id) FROM shortened_urls")
 
@@ -155,6 +159,7 @@ func (r *SQLRepository) GetMaxID() (uint64, error) {
 	return 0, err
 }
 
+// CheckConnection verifies the database connection is alive.
 func (r *SQLRepository) CheckConnection(ctx context.Context) bool {
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
@@ -164,6 +169,7 @@ func (r *SQLRepository) CheckConnection(ctx context.Context) bool {
 	return err == nil
 }
 
+// Close closes the database connection.
 func (r *SQLRepository) Close() {
 	r.db.Close()
 }

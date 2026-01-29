@@ -1,22 +1,28 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"os"
 
+	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/config"
 	"github.com/PolRuff/urlshort/internal/handler"
 	"github.com/PolRuff/urlshort/internal/middleware"
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+
+	_ "net/http/pprof"
 )
 
 func main() {
-	cfg := config.MustLoad(os.Args[1:])
+	cfg, err := config.Load(os.Args[1:])
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to load configuration")
+	}
 
 	var repo repository.Repository
-	var err error
 
 	if cfg.DatabaseDsn != "" {
 		repo, err = repository.NewSQLRepository(cfg.DatabaseDsn)
@@ -36,7 +42,16 @@ func main() {
 
 	defer repo.Close()
 
-	h := handler.New(repo, cfg.BaseURL, cfg.SecretKey)
+	var auditSinks []audit.Sink
+	if cfg.AuditFile != "" {
+		auditSinks = append(auditSinks, audit.NewFileSink(cfg.AuditFile))
+	}
+	if cfg.AuditURL != "" {
+		auditSinks = append(auditSinks, audit.NewHTTPSink(cfg.AuditURL))
+	}
+	auditManager := audit.NewManager(auditSinks...)
+
+	h := handler.New(repo, cfg.BaseURL, cfg.SecretKey, auditManager)
 
 	r := chi.NewRouter()
 
@@ -53,6 +68,15 @@ func main() {
 
 	log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
 	log.Debug().Msgf("Base URL for short links: %s", cfg.BaseURL)
+
+	go func() {
+		const pprofPort = ":9090"
+		log.Debug().Msgf("pprof server is running on http://localhost%s/debug/pprof/", pprofPort)
+
+		if err := http.ListenAndServe(pprofPort, nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error().Err(err).Msg("pprof server failed")
+		}
+	}()
 
 	log.Fatal().Err(http.ListenAndServe(cfg.ServerAddr, r))
 }
