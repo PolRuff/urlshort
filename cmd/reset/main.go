@@ -17,6 +17,7 @@ import (
 )
 
 // FieldInfo holds information about a struct field for code generation.
+// generate:reset
 type FieldInfo struct {
 	Name      string
 	TypeStr   string
@@ -27,12 +28,14 @@ type FieldInfo struct {
 }
 
 // StructInfo holds information about a struct that needs a Reset method.
+// generate:reset
 type StructInfo struct {
 	Name   string
 	Fields []FieldInfo
 }
 
 // PackageInfo holds all structs to be processed in a single package.
+// generate:reset
 type PackageInfo struct {
 	PackageName string
 	Structs     []StructInfo
@@ -49,17 +52,19 @@ func (rs *{{.Name}}) Reset() {
 	}
 	{{range .Fields}}
 	{{- if .IsPointer}}
-	{{- if .IsStruct}}
-	if resetter, ok := any(rs.{{.Name}}).(interface{ Reset() }); ok && rs.{{.Name}} != nil {
-		resetter.Reset()
+	if rs.{{.Name}} != nil {
+		{{- if .IsStruct}}
+		if resetter, ok := any(rs.{{.Name}}).(interface{ Reset() }); ok {
+			resetter.Reset()
+		}
+		{{- else if .IsSlice}}
+		*rs.{{.Name}} = (*rs.{{.Name}})[:0]
+		{{- else if .IsMap}}
+		clear(*rs.{{.Name}})
+		{{- else}}
+		*rs.{{.Name}} = {{zeroValue .TypeStr}}
+		{{- end}}
 	}
-	{{- else if .IsSlice}}
-	*rs.{{.Name}} = (*rs.{{.Name}})[:0]
-	{{- else if .IsMap}}
-	clear(*rs.{{.Name}})
-	{{- else}}
-	*rs.{{.Name}} = {{zeroValue .TypeStr}}
-	{{- end}}
 	{{- else}}
 	{{- if .IsStruct}}
 	if resetter, ok := any(rs.{{.Name}}).(interface{ Reset() }); ok {
@@ -102,6 +107,11 @@ func init() {
 
 func main() {
 	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get current directory: %v\n", err)
+		os.Exit(1)
+	}
+
 	var dir string
 	flag.StringVar(&dir, "dir", currentDir, "Directory to scan for Go packages")
 	flag.Parse()
@@ -139,36 +149,46 @@ func main() {
 	}
 }
 
-// processPackage scans a single package directory for structs with the reset annotation.
 func processPackage(pkgDir string) (*PackageInfo, error) {
-	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, pkgDir, nil, parser.ParseComments)
+	// Read all .go files in the directory
+	entries, err := os.ReadDir(pkgDir)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(pkgs) == 0 {
+	var goFiles []string
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") && !strings.HasSuffix(entry.Name(), "_test.go") {
+			goFiles = append(goFiles, filepath.Join(pkgDir, entry.Name()))
+		}
+	}
+
+	if len(goFiles) == 0 {
 		return &PackageInfo{}, nil
 	}
 
-	// Assume there's only one package in the directory
+	fset := token.NewFileSet()
 	var pkgName string
-	var pkgAST *ast.Package
-	for name, astPkg := range pkgs {
-		pkgName = name
-		pkgAST = astPkg
-		break
-	}
-
-	if pkgName == "main" {
-		// Skip main package as it usually doesn't need Reset methods
-		return &PackageInfo{}, nil
-	}
-
 	var structs []StructInfo
 
-	// Iterate over all files in the package
-	for _, file := range pkgAST.Files {
+	// Parse each file individually
+	for _, filePath := range goFiles {
+		file, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get package name from the first file
+		if pkgName == "" {
+			pkgName = file.Name.Name
+		}
+
+		// Skip main package
+		if pkgName == "main" {
+			return &PackageInfo{}, nil
+		}
+
+		// Process declarations in this file
 		for _, decl := range file.Decls {
 			genDecl, ok := decl.(*ast.GenDecl)
 			if !ok || genDecl.Tok != token.TYPE {
