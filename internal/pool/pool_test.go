@@ -5,17 +5,6 @@ import (
 	"testing"
 )
 
-// Следующий код не должен компилироваться,
-// если раскомментировать:
-//
-// type NoReset struct{}
-//
-// func TestCompileTimeConstraint(t *testing.T) {
-//     _ = New(func() *NoReset {
-//         return &NoReset{}
-//     })
-// }
-
 func TestGetReturnsObject(t *testing.T) {
 	p := New(func() *TestStruct {
 		return &TestStruct{
