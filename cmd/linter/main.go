@@ -2,6 +2,7 @@ package main
 
 import (
 	"go/ast"
+	"go/types"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -50,8 +51,13 @@ func run(pass *analysis.Pass) (any, error) {
 				return true
 			}
 
+			pkgObj, ok := pass.TypesInfo.Uses[pkgIdent].(*types.PkgName)
+			if !ok {
+				return true
+			}
+
 			funcName := sel.Sel.Name
-			pkgName := pkgIdent.Name
+			pkgName := pkgObj.Imported().Name()
 
 			// Проверяем, находится ли вызов внутри main.main
 			if isInsideMainMain(isMainPkg, stack) {
