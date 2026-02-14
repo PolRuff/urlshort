@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/config"
@@ -43,7 +47,7 @@ func main() {
 	if cfg.DatabaseDsn != "" {
 		repo, err = repository.NewSQLRepository(cfg.DatabaseDsn)
 		if err != nil {
-			log.Fatal().Err(err).Msg("Failed top open sql repository")
+			log.Fatal().Err(err).Msg("Failed to open sql repository")
 		}
 	} else if cfg.FileStoragePath != "" {
 		// If a file path is provided, create a FileRepository
@@ -93,20 +97,41 @@ func main() {
 		}
 	}()
 
-	var serverErr error
-
-	if cfg.EnableHTTPS {
-		log.Debug().Msgf("Server is running on https://%s", cfg.ServerAddr)
-		serverErr = http.ListenAndServeTLS(
-			cfg.ServerAddr,
-			"server.crt",
-			"server.key",
-			r,
-		)
-	} else {
-		log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
-		serverErr = http.ListenAndServe(cfg.ServerAddr, r)
+	server := &http.Server{
+		Addr:    cfg.ServerAddr,
+		Handler: r,
 	}
 
-	log.Fatal().Err(serverErr)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+
+	go func() {
+		var serverErr error
+
+		if cfg.EnableHTTPS {
+			log.Debug().Msgf("Server is running on https://%s", cfg.ServerAddr)
+			serverErr = server.ListenAndServeTLS("server.crt", "server.key")
+		} else {
+			log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
+			serverErr = server.ListenAndServe()
+		}
+
+		if serverErr != nil && !errors.Is(serverErr, http.ErrServerClosed) {
+			log.Fatal().Err(serverErr)
+		}
+	}()
+
+	// ждём завершения процедуры graceful shutdown
+	<-sigChan
+	log.Debug().Msg("Received shutdown signal, gracefully shutting down...")
+
+	// Graceful shutdown с таймаутом 10 секунд
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Error().Err(err).Msg("Server forced to shutdown")
+	} else {
+		log.Debug().Msg("Server exited gracefully")
+	}
 }
