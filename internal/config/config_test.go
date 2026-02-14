@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,6 +30,7 @@ func TestLoad_PriorityEnv(t *testing.T) {
 		os.Unsetenv("AUDIT_FILE")
 		os.Unsetenv("AUDIT_URL")
 		os.Unsetenv("ENABLE_HTTPS")
+		os.Unsetenv("CONFIG")
 	}()
 
 	// Call Load with flags that should be overridden by env vars
@@ -98,6 +100,7 @@ func TestLoad_Defaults(t *testing.T) {
 	os.Unsetenv("AUDIT_FILE")
 	os.Unsetenv("AUDIT_URL")
 	os.Unsetenv("ENABLE_HTTPS")
+	os.Unsetenv("CONFIG")
 
 	// Call Load with no arguments to use defaults
 	cfg, err := Load([]string{})
@@ -111,4 +114,61 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "", cfg.AuditFile)
 	assert.Equal(t, "", cfg.AuditURL)
 	assert.False(t, cfg.EnableHTTPS)
+}
+
+func TestLoad_JSON(t *testing.T) {
+	os.Unsetenv("SERVER_ADDRESS")
+	os.Unsetenv("BASE_URL")
+	os.Unsetenv("FILE_STORAGE_PATH")
+	os.Unsetenv("DATABASE_DSN")
+	os.Unsetenv("SECRET_KEY")
+	os.Unsetenv("AUDIT_FILE")
+	os.Unsetenv("AUDIT_URL")
+	os.Unsetenv("ENABLE_HTTPS")
+	os.Unsetenv("CONFIG")
+
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.json")
+
+	jsonContent := `{
+		"server_address": "json:8080",
+		"base_url": "http://json",
+		"file_storage_path": "/json/storage.json",
+		"database_dsn": "postgres://json",
+		"secret_key": "verysupersecretkey",
+		"audit_file": "/tmp/flag_audit.log",
+		"audit_url": "http://flag-audit.local",
+		"enable_https": true
+	}`
+
+	require.NoError(t, os.WriteFile(configFile, []byte(jsonContent), 0644))
+
+	cfg, err := Load([]string{"-c", configFile})
+	require.NoError(t, err)
+
+	assert.Equal(t, "json:8080", cfg.ServerAddr)
+	assert.Equal(t, "http://json", cfg.BaseURL)
+	assert.Equal(t, "/json/storage.json", cfg.FileStoragePath)
+	assert.Equal(t, "postgres://json", cfg.DatabaseDsn)
+	assert.Equal(t, "verysupersecretkey", cfg.SecretKey)
+	assert.Equal(t, "/tmp/flag_audit.log", cfg.AuditFile)
+	assert.Equal(t, "http://flag-audit.local", cfg.AuditURL)
+	assert.True(t, cfg.EnableHTTPS)
+}
+
+func TestLoad_InvalideConfigPath(t *testing.T) {
+	_, err := Load([]string{"-c", "invalid path to config file"})
+	require.Error(t, err)
+}
+
+func TestLoad_InvalidJSON(t *testing.T) {
+	tmpDir := t.TempDir()
+	invalidConfigFile := filepath.Join(tmpDir, "invalid_config.json")
+
+	invalidJSONContent := `invalid json content`
+
+	require.NoError(t, os.WriteFile(invalidConfigFile, []byte(invalidJSONContent), 0644))
+
+	_, err := Load([]string{"-c", invalidConfigFile})
+	require.Error(t, err)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,6 +27,9 @@ var (
 func main() {
 	cfg, err := config.Load(os.Args[1:])
 	if err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			os.Exit(0)
+		}
 		log.Fatal().Err(err).Msg("Failed to load configuration")
 	}
 
