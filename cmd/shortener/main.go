@@ -78,7 +78,6 @@ func main() {
 	r.Get("/{id}", h.RedirectHandler)
 	r.Get("/ping", h.PingHandler)
 
-	log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
 	log.Debug().Msgf("Base URL for short links: %s", cfg.BaseURL)
 
 	go func() {
@@ -90,5 +89,20 @@ func main() {
 		}
 	}()
 
-	log.Fatal().Err(http.ListenAndServe(cfg.ServerAddr, r))
+	var serverErr error
+
+	if cfg.EnableHTTPS {
+		log.Debug().Msgf("Server is running on https://%s", cfg.ServerAddr)
+		serverErr = http.ListenAndServeTLS(
+			cfg.ServerAddr,
+			"server.crt",
+			"server.key",
+			r,
+		)
+	} else {
+		log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
+		serverErr = http.ListenAndServe(cfg.ServerAddr, r)
+	}
+
+	log.Fatal().Err(serverErr)
 }

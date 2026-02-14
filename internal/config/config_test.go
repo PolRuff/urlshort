@@ -17,6 +17,7 @@ func TestLoad_PriorityEnv(t *testing.T) {
 	os.Setenv("SECRET_KEY", "verysupersecretkey")
 	os.Setenv("AUDIT_FILE", "/var/log/audit.log")
 	os.Setenv("AUDIT_URL", "https://audit.example.com/logs")
+	os.Setenv("ENABLE_HTTPS", "true")
 
 	// Ensure environment variables are cleared after the test
 	defer func() {
@@ -27,6 +28,7 @@ func TestLoad_PriorityEnv(t *testing.T) {
 		os.Unsetenv("SECRET_KEY")
 		os.Unsetenv("AUDIT_FILE")
 		os.Unsetenv("AUDIT_URL")
+		os.Unsetenv("ENABLE_HTTPS")
 	}()
 
 	// Call Load with flags that should be overridden by env vars
@@ -35,9 +37,10 @@ func TestLoad_PriorityEnv(t *testing.T) {
 		"-b", "http://flag.com",
 		"-f", "/flag/path/storage.json",
 		"-d", "postgres://picture:passworduserpicture@localhost:4523/picture?sslmode=default",
-		"-s", "veryverysupersecretkey",
+		"-k", "veryverysupersecretkey",
 		"-audit-file", "/tmp/flag_audit.log",
 		"-audit-url", "http://flag-audit.local",
+		"-s",
 	})
 	require.NoError(t, err, "Load should not return an error")
 
@@ -48,6 +51,7 @@ func TestLoad_PriorityEnv(t *testing.T) {
 	assert.Equal(t, "verysupersecretkey", cfg.SecretKey)                                                  // env takes precedence
 	assert.Equal(t, "/var/log/audit.log", cfg.AuditFile)                                                  // env takes precedence
 	assert.Equal(t, "https://audit.example.com/logs", cfg.AuditURL)                                       // env takes precedence
+	assert.True(t, cfg.EnableHTTPS)                                                                       // env takes precedence
 }
 
 func TestLoad_PriorityFlag(t *testing.T) {
@@ -59,6 +63,7 @@ func TestLoad_PriorityFlag(t *testing.T) {
 	os.Unsetenv("SECRET_KEY")
 	os.Unsetenv("AUDIT_FILE")
 	os.Unsetenv("AUDIT_URL")
+	os.Unsetenv("ENABLE_HTTPS")
 
 	// Call Load with flags that override defaults
 	cfg, err := Load([]string{
@@ -66,9 +71,10 @@ func TestLoad_PriorityFlag(t *testing.T) {
 		"-b", "http://flag.com",
 		"-f", "/flag/path/storage.json",
 		"-d", "postgres://picture:passworduserpicture@localhost:4523/picture?sslmode=default",
-		"-s", "verysupersecretkey",
+		"-k", "verysupersecretkey",
 		"-audit-file", "/tmp/flag_audit.log",
 		"-audit-url", "http://flag-audit.local",
+		"-s",
 	})
 	require.NoError(t, err, "Load should not return an error")
 
@@ -79,6 +85,7 @@ func TestLoad_PriorityFlag(t *testing.T) {
 	assert.Equal(t, "verysupersecretkey", cfg.SecretKey)
 	assert.Equal(t, "/tmp/flag_audit.log", cfg.AuditFile)
 	assert.Equal(t, "http://flag-audit.local", cfg.AuditURL)
+	assert.True(t, cfg.EnableHTTPS)
 }
 
 func TestLoad_Defaults(t *testing.T) {
@@ -90,6 +97,7 @@ func TestLoad_Defaults(t *testing.T) {
 	os.Unsetenv("SECRET_KEY")
 	os.Unsetenv("AUDIT_FILE")
 	os.Unsetenv("AUDIT_URL")
+	os.Unsetenv("ENABLE_HTTPS")
 
 	// Call Load with no arguments to use defaults
 	cfg, err := Load([]string{})
@@ -102,4 +110,5 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "supersecretkey", cfg.SecretKey)
 	assert.Equal(t, "", cfg.AuditFile)
 	assert.Equal(t, "", cfg.AuditURL)
+	assert.False(t, cfg.EnableHTTPS)
 }

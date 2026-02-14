@@ -16,6 +16,7 @@ type Config struct {
 	SecretKey       string `env:"SECRET_KEY"`
 	AuditFile       string `env:"AUDIT_FILE"`
 	AuditURL        string `env:"AUDIT_URL"`
+	EnableHTTPS     bool   `env:"ENABLE_HTTPS"`
 }
 
 // Load parses environment variables and command-line flags (from args) and returns application config.
@@ -29,9 +30,10 @@ func Load(args []string) (*Config, error) {
 		baseURL         = fs.String("b", "http://localhost:8080", "Base URL for shortened links (e.g. http://localhost:8000)")
 		fileStoragePath = fs.String("f", "./storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
 		databaseDsn     = fs.String("d", "", "Data source name (e.g. postgres://urlshort:urlshort@localhost:5432/urlshort?sslmode=disable)")
-		secretKey       = fs.String("s", "supersecretkey", "Secret key for symmetrically sign cookie")
+		secretKey       = fs.String("k", "supersecretkey", "Secret key for symmetrically sign cookie")
 		auditFile       = fs.String("audit-file", "", "Path to the audit log file")
 		auditURL        = fs.String("audit-url", "", "URL of the remote audit log server")
+		enableHTTPS     = fs.Bool("s", false, "Enable HTTPS")
 	)
 
 	if err := fs.Parse(args); err != nil {
@@ -46,6 +48,7 @@ func Load(args []string) (*Config, error) {
 		SecretKey:       *secretKey,
 		AuditFile:       *auditFile,
 		AuditURL:        *auditURL,
+		EnableHTTPS:     *enableHTTPS,
 	}
 
 	// Load configuration from environment variables (they take precedence)
