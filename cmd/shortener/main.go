@@ -130,8 +130,8 @@ func main() {
 	<-ctx.Done()
 	log.Info().Msg("Received shutdown signal, gracefully shutting down...")
 
-	// Graceful shutdown с таймаутом 10 секунд
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Graceful shutdown с таймаутом 30 секунд
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
