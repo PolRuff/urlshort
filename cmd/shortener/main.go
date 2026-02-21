@@ -102,8 +102,13 @@ func main() {
 		Handler: r,
 	}
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
+	defer stop()
 
 	go func() {
 		var serverErr error
@@ -122,7 +127,7 @@ func main() {
 	}()
 
 	// ждём завершения процедуры graceful shutdown
-	<-sigChan
+	<-ctx.Done()
 	log.Debug().Msg("Received shutdown signal, gracefully shutting down...")
 
 	// Graceful shutdown с таймаутом 10 секунд
