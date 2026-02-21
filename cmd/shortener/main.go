@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -88,7 +89,12 @@ func main() {
 
 	log.Debug().Msgf("Base URL for short links: %s", cfg.BaseURL)
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
 		const pprofPort = ":9090"
 		log.Debug().Msgf("pprof server is running on http://localhost%s/debug/pprof/", pprofPort)
 
@@ -110,7 +116,10 @@ func main() {
 	)
 	defer stop()
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
 		var serverErr error
 
 		if cfg.EnableHTTPS {
@@ -139,4 +148,7 @@ func main() {
 	} else {
 		log.Debug().Msg("Server exited gracefully")
 	}
+
+	// Дожидаемся завершения горутин
+	wg.Wait()
 }
