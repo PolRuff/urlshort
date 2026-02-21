@@ -122,7 +122,7 @@ func main() {
 		}
 
 		if serverErr != nil && !errors.Is(serverErr, http.ErrServerClosed) {
-			log.Fatal().Err(serverErr)
+			log.Error().Err(serverErr)
 		}
 	}()
 
