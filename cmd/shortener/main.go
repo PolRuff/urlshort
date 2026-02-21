@@ -128,7 +128,7 @@ func main() {
 
 	// ждём завершения процедуры graceful shutdown
 	<-ctx.Done()
-	log.Debug().Msg("Received shutdown signal, gracefully shutting down...")
+	log.Info().Msg("Received shutdown signal, gracefully shutting down...")
 
 	// Graceful shutdown с таймаутом 10 секунд
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
