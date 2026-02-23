@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,27 +12,14 @@ import (
 
 func TestLoad_PriorityEnv(t *testing.T) {
 	// Set environment variables
-	os.Setenv("SERVER_ADDRESS", "0.0.0.0:9090")
-	os.Setenv("BASE_URL", "http://env.com")
-	os.Setenv("FILE_STORAGE_PATH", "/env/path/storage.json")
-	os.Setenv("DATABASE_DSN", "postgres://music:passworduser@localhost:2345/music?sslmode=enable")
-	os.Setenv("SECRET_KEY", "verysupersecretkey")
-	os.Setenv("AUDIT_FILE", "/var/log/audit.log")
-	os.Setenv("AUDIT_URL", "https://audit.example.com/logs")
-	os.Setenv("ENABLE_HTTPS", "true")
-
-	// Ensure environment variables are cleared after the test
-	defer func() {
-		os.Unsetenv("SERVER_ADDRESS")
-		os.Unsetenv("BASE_URL")
-		os.Unsetenv("FILE_STORAGE_PATH")
-		os.Unsetenv("DATABASE_DSN")
-		os.Unsetenv("SECRET_KEY")
-		os.Unsetenv("AUDIT_FILE")
-		os.Unsetenv("AUDIT_URL")
-		os.Unsetenv("ENABLE_HTTPS")
-		os.Unsetenv("CONFIG")
-	}()
+	t.Setenv("SERVER_ADDRESS", "0.0.0.0:9090")
+	t.Setenv("BASE_URL", "http://env.com")
+	t.Setenv("FILE_STORAGE_PATH", "/env/path/storage.json")
+	t.Setenv("DATABASE_DSN", "postgres://music:passworduser@localhost:2345/music?sslmode=enable")
+	t.Setenv("SECRET_KEY", "verysupersecretkey")
+	t.Setenv("AUDIT_FILE", "/var/log/audit.log")
+	t.Setenv("AUDIT_URL", "https://audit.example.com/logs")
+	t.Setenv("ENABLE_HTTPS", "true")
 
 	// Call Load with flags that should be overridden by env vars
 	cfg, err := Load([]string{
@@ -40,8 +28,8 @@ func TestLoad_PriorityEnv(t *testing.T) {
 		"-f", "/flag/path/storage.json",
 		"-d", "postgres://picture:passworduserpicture@localhost:4523/picture?sslmode=default",
 		"-k", "veryverysupersecretkey",
-		"-audit-file", "/tmp/flag_audit.log",
-		"-audit-url", "http://flag-audit.local",
+		"--audit-file", "/tmp/flag_audit.log",
+		"--audit-url", "http://flag-audit.local",
 		"-s",
 	})
 	require.NoError(t, err, "Load should not return an error")
@@ -57,16 +45,6 @@ func TestLoad_PriorityEnv(t *testing.T) {
 }
 
 func TestLoad_PriorityFlag(t *testing.T) {
-	// Ensure environment variables are not set
-	os.Unsetenv("SERVER_ADDRESS")
-	os.Unsetenv("BASE_URL")
-	os.Unsetenv("FILE_STORAGE_PATH")
-	os.Unsetenv("DATABASE_DSN")
-	os.Unsetenv("SECRET_KEY")
-	os.Unsetenv("AUDIT_FILE")
-	os.Unsetenv("AUDIT_URL")
-	os.Unsetenv("ENABLE_HTTPS")
-
 	// Call Load with flags that override defaults
 	cfg, err := Load([]string{
 		"-a", "127.0.0.1:8081",
@@ -74,8 +52,8 @@ func TestLoad_PriorityFlag(t *testing.T) {
 		"-f", "/flag/path/storage.json",
 		"-d", "postgres://picture:passworduserpicture@localhost:4523/picture?sslmode=default",
 		"-k", "verysupersecretkey",
-		"-audit-file", "/tmp/flag_audit.log",
-		"-audit-url", "http://flag-audit.local",
+		"--audit-file", "/tmp/flag_audit.log",
+		"--audit-url", "http://flag-audit.local",
 		"-s",
 	})
 	require.NoError(t, err, "Load should not return an error")
@@ -90,18 +68,19 @@ func TestLoad_PriorityFlag(t *testing.T) {
 	assert.True(t, cfg.EnableHTTPS)
 }
 
-func TestLoad_Defaults(t *testing.T) {
-	// Ensure environment variables are not set
-	os.Unsetenv("SERVER_ADDRESS")
-	os.Unsetenv("BASE_URL")
-	os.Unsetenv("FILE_STORAGE_PATH")
-	os.Unsetenv("DATABASE_DSN")
-	os.Unsetenv("SECRET_KEY")
-	os.Unsetenv("AUDIT_FILE")
-	os.Unsetenv("AUDIT_URL")
-	os.Unsetenv("ENABLE_HTTPS")
-	os.Unsetenv("CONFIG")
+func TestLoad_Help(t *testing.T) {
+	_, err := Load([]string{"--help"})
 
+	require.ErrorIs(t, err, flag.ErrHelp)
+}
+
+func TestLoad_InvalidFlags(t *testing.T) {
+	_, err := Load([]string{"--invalid flag"})
+
+	require.Error(t, err)
+}
+
+func TestLoad_Defaults(t *testing.T) {
 	// Call Load with no arguments to use defaults
 	cfg, err := Load([]string{})
 	require.NoError(t, err, "Load should not return an error")
@@ -117,16 +96,6 @@ func TestLoad_Defaults(t *testing.T) {
 }
 
 func TestLoad_JSON(t *testing.T) {
-	os.Unsetenv("SERVER_ADDRESS")
-	os.Unsetenv("BASE_URL")
-	os.Unsetenv("FILE_STORAGE_PATH")
-	os.Unsetenv("DATABASE_DSN")
-	os.Unsetenv("SECRET_KEY")
-	os.Unsetenv("AUDIT_FILE")
-	os.Unsetenv("AUDIT_URL")
-	os.Unsetenv("ENABLE_HTTPS")
-	os.Unsetenv("CONFIG")
-
 	tmpDir := t.TempDir()
 	configFile := filepath.Join(tmpDir, "config.json")
 
@@ -156,7 +125,7 @@ func TestLoad_JSON(t *testing.T) {
 	assert.True(t, cfg.EnableHTTPS)
 }
 
-func TestLoad_InvalideConfigPath(t *testing.T) {
+func TestLoad_InvalidConfigPath(t *testing.T) {
 	_, err := Load([]string{"-c", "invalid path to config file"})
 	require.Error(t, err)
 }
