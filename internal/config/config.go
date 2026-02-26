@@ -1,64 +1,96 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"strings"
 
-	"github.com/caarlos0/env/v6"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 // Config holds application configuration
 type Config struct {
-	ServerAddr      string `env:"SERVER_ADDRESS"`
-	BaseURL         string `env:"BASE_URL"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	DatabaseDsn     string `env:"DATABASE_DSN"`
-	SecretKey       string `env:"SECRET_KEY"`
-	AuditFile       string `env:"AUDIT_FILE"`
-	AuditURL        string `env:"AUDIT_URL"`
+	ServerAddr      string `mapstructure:"server_address"`
+	BaseURL         string `mapstructure:"base_url"`
+	FileStoragePath string `mapstructure:"file_storage_path"`
+	DatabaseDsn     string `mapstructure:"database_dsn"`
+	SecretKey       string `mapstructure:"secret_key"`
+	AuditFile       string `mapstructure:"audit_file"`
+	AuditURL        string `mapstructure:"audit_url"`
+	EnableHTTPS     bool   `mapstructure:"enable_https"`
 }
 
 // Load parses environment variables and command-line flags (from args) and returns application config.
 // args should be like os.Args[1:].
-// Priority: 1. Environment variables, 2. CLI flags (-a, -b, -f), 3. Default values
+// Priority: 1. Environment variables, 2. CLI flags (-a, -b, -f), 3. JSON config 4. Default values
 func Load(args []string) (*Config, error) {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	v := viper.New()
 
-	var (
-		serverAddr      = fs.String("a", "localhost:8080", "HTTP server address (e.g. localhost:8888)")
-		baseURL         = fs.String("b", "http://localhost:8080", "Base URL for shortened links (e.g. http://localhost:8000)")
-		fileStoragePath = fs.String("f", "./storage.json", "Path to the file storage (e.g. /path/to/storage.json)")
-		databaseDsn     = fs.String("d", "", "Data source name (e.g. postgres://urlshort:urlshort@localhost:5432/urlshort?sslmode=disable)")
-		secretKey       = fs.String("s", "supersecretkey", "Secret key for symmetrically sign cookie")
-		auditFile       = fs.String("audit-file", "", "Path to the audit log file")
-		auditURL        = fs.String("audit-url", "", "URL of the remote audit log server")
-	)
+	// Environment variables
+	v.AutomaticEnv()
+
+	// By default, command-line flags is higher priority than environment variables.
+	// Change it by viper.Set()
+	keys := [...]string{
+		"server_address",
+		"base_url",
+		"file_storage_path",
+		"database_dsn",
+		"secret_key",
+		"audit_file",
+		"audit_url",
+		"enable_https",
+	}
+	for _, key := range keys {
+		if v.IsSet(key) {
+			v.Set(key, v.Get(key))
+		}
+	}
+
+	// Command-line flags with default values
+	fs := pflag.NewFlagSet("", pflag.ContinueOnError)
+
+	fs.StringP("server_address", "a", "localhost:8080", "HTTP server address")
+	fs.StringP("base_url", "b", "http://localhost:8080", "Base URL for shortened links")
+	fs.StringP("file_storage_path", "f", "./storage.json", "File storage path")
+	fs.StringP("database_dsn", "d", "", "Database DSN")
+	fs.StringP("secret_key", "k", "supersecretkey", "Secret key")
+	fs.String("audit_file", "", "Audit log file path")
+	fs.String("audit_url", "", "Audit log remote URL")
+	fs.BoolP("enable_https", "s", false, "Enable HTTPS")
+	fs.StringP("config", "c", "", "Path to config file")
+
+	fs.SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
+		name = strings.ReplaceAll(name, "-", "_")
+		return pflag.NormalizedName(name)
+	})
 
 	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, pflag.ErrHelp) {
+			return nil, flag.ErrHelp
+		}
 		return nil, fmt.Errorf("failed to parse flags: %w", err)
 	}
 
-	cfg := &Config{
-		ServerAddr:      *serverAddr,
-		BaseURL:         *baseURL,
-		FileStoragePath: *fileStoragePath,
-		DatabaseDsn:     *databaseDsn,
-		SecretKey:       *secretKey,
-		AuditFile:       *auditFile,
-		AuditURL:        *auditURL,
+	if err := v.BindPFlags(fs); err != nil {
+		return nil, fmt.Errorf("failed to bind flags: %w", err)
 	}
 
-	// Load configuration from environment variables (they take precedence)
-	if err := env.Parse(cfg); err != nil {
-		return nil, fmt.Errorf("failed to parse config from environment: %w", err)
+	// Configuration file
+	configPath := v.GetString("config")
+	if configPath != "" {
+		v.SetConfigFile(configPath)
+		if err := v.ReadInConfig(); err != nil {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
+		}
 	}
 
-	if cfg.ServerAddr == "" {
-		return nil, fmt.Errorf("required flag -a or env SERVER_ADDRESS is missing")
-	}
-	if cfg.BaseURL == "" {
-		return nil, fmt.Errorf("required flag -b or env BASE_URL is missing")
+	var cfg Config
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }

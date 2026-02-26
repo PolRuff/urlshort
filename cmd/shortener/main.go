@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/config"
@@ -26,6 +32,9 @@ var (
 func main() {
 	cfg, err := config.Load(os.Args[1:])
 	if err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			os.Exit(0)
+		}
 		log.Fatal().Err(err).Msg("Failed to load configuration")
 	}
 
@@ -39,7 +48,7 @@ func main() {
 	if cfg.DatabaseDsn != "" {
 		repo, err = repository.NewSQLRepository(cfg.DatabaseDsn)
 		if err != nil {
-			log.Fatal().Err(err).Msg("Failed top open sql repository")
+			log.Fatal().Err(err).Msg("Failed to open sql repository")
 		}
 	} else if cfg.FileStoragePath != "" {
 		// If a file path is provided, create a FileRepository
@@ -78,10 +87,14 @@ func main() {
 	r.Get("/{id}", h.RedirectHandler)
 	r.Get("/ping", h.PingHandler)
 
-	log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
 	log.Debug().Msgf("Base URL for short links: %s", cfg.BaseURL)
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
 		const pprofPort = ":9090"
 		log.Debug().Msgf("pprof server is running on http://localhost%s/debug/pprof/", pprofPort)
 
@@ -90,5 +103,52 @@ func main() {
 		}
 	}()
 
-	log.Fatal().Err(http.ListenAndServe(cfg.ServerAddr, r))
+	server := &http.Server{
+		Addr:    cfg.ServerAddr,
+		Handler: r,
+	}
+
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
+	defer stop()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		var serverErr error
+
+		if cfg.EnableHTTPS {
+			log.Debug().Msgf("Server is running on https://%s", cfg.ServerAddr)
+			serverErr = server.ListenAndServeTLS("server.crt", "server.key")
+		} else {
+			log.Debug().Msgf("Server is running on http://%s", cfg.ServerAddr)
+			serverErr = server.ListenAndServe()
+		}
+
+		if serverErr != nil && !errors.Is(serverErr, http.ErrServerClosed) {
+			log.Error().Err(serverErr)
+		}
+	}()
+
+	// ждём завершения процедуры graceful shutdown
+	<-ctx.Done()
+	log.Info().Msg("Received shutdown signal, gracefully shutting down...")
+
+	// Graceful shutdown с таймаутом 30 секунд
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Error().Err(err).Msg("Server forced to shutdown")
+	} else {
+		log.Debug().Msg("Server exited gracefully")
+	}
+
+	// Дожидаемся завершения горутин
+	wg.Wait()
 }
