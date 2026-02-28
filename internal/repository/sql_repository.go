@@ -99,7 +99,7 @@ func (r *SQLRepository) Delete(ctx context.Context, userID uint32, shortIDs []st
 }
 
 // Get retrieves the original URL by short ID
-func (r *SQLRepository) Get(ctx context.Context, shortID string) (orignal string, found bool, deleted bool) {
+func (r *SQLRepository) Get(ctx context.Context, shortID string) (original string, found bool, deleted bool) {
 	row := r.db.QueryRowContext(ctx, "SELECT original_url, is_deleted FROM shortened_urls WHERE short_url = $1", shortID)
 
 	var originalURL sql.NullString

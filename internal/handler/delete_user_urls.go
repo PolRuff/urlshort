@@ -43,13 +43,13 @@ func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var shordIDs []string
-	if err := json.Unmarshal(body, &shordIDs); err != nil {
+	var shortIDs []string
+	if err := json.Unmarshal(body, &shortIDs); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	go h.userService.DeleteUserUrls(context.Background(), userID, shordIDs)
+	go h.userService.DeleteUserUrls(context.Background(), userID, shortIDs)
 
 	signature := service.SignUserID(userID, []byte(h.signKey))
 	http.SetCookie(w, &http.Cookie{

@@ -30,8 +30,8 @@ func (s *userService) GetUserUrls(ctx context.Context, userID uint32) ([]model.U
 }
 
 // DeleteUserUrls marks the given short URLs as deleted for the user
-func (s *userService) DeleteUserUrls(ctx context.Context, userID uint32, shordIDs []string) {
-	if err := s.repo.Delete(ctx, userID, shordIDs); err != nil {
+func (s *userService) DeleteUserUrls(ctx context.Context, userID uint32, shortIDs []string) {
+	if err := s.repo.Delete(ctx, userID, shortIDs); err != nil {
 		log.Error().Err(err).Msg("Failed to delete user URLs")
 	}
 }
