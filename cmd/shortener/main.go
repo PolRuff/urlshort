@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -72,7 +73,17 @@ func main() {
 	}
 	auditManager := audit.NewManager(auditSinks...)
 
-	h := handler.New(repo, cfg.BaseURL, cfg.SecretKey, auditManager)
+	var trustedNet *net.IPNet
+
+	if cfg.TrustedSubnet != "" {
+		// Parse trusted subnet CIDR
+		_, trustedNet, err = net.ParseCIDR(cfg.TrustedSubnet)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Invalid trusted subnet configuration")
+		}
+	}
+
+	h := handler.New(repo, cfg.BaseURL, cfg.SecretKey, auditManager, trustedNet)
 
 	r := chi.NewRouter()
 
@@ -84,6 +95,7 @@ func main() {
 	r.Post("/api/shorten/batch", h.ShortenBatchAPIHandler)
 	r.Delete("/api/user/urls", h.DeleteUserUrlsHandler)
 	r.Get("/api/user/urls", h.UserUrlsHandler)
+	r.Get("/api/internal/stats", h.StatsHandler)
 	r.Get("/{id}", h.RedirectHandler)
 	r.Get("/ping", h.PingHandler)
 

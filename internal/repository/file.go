@@ -141,6 +141,19 @@ func (r *FileRepository) GetMaxID() (uint64, error) {
 	return uint64(len(r.records)), nil
 }
 
+// CountURLs returns the total number of shortened URLs
+func (r *FileRepository) CountURLs(ctx context.Context) (int, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.records), nil
+}
+
+// CountUsers always returns 0 for file repository (not implemented)
+func (r *FileRepository) CountUsers(ctx context.Context) (int, error) {
+	// TODO: implement user tracking in file repository
+	return 0, nil
+}
+
 // CheckConnection verifies that the repository can write to its storage directory.
 func (r *FileRepository) CheckConnection(ctx context.Context) bool {
 	dir := filepath.Dir(r.filePath)

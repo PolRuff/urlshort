@@ -3,6 +3,7 @@ package handler
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -42,18 +43,20 @@ type Handler struct {
 	baseURL      string
 	counter      atomic.Uint64
 	signKey      string
+	trustedNet   *net.IPNet
 }
 
 // New creates a new Handler instance.
 // It requires a repository for data storage, a base URL for generating short links,
 // a secret key for signing user cookies, and an audit manager for logging events.
-func New(repo repository.Repository, baseURL string, signKey string, auditManager *audit.Manager) *Handler {
+func New(repo repository.Repository, baseURL string, signKey string, auditManager *audit.Manager, trustedNet *net.IPNet) *Handler {
 	h := &Handler{
 		repo:         repo,
 		userService:  service.NewUserService(repo),
 		auditManager: auditManager,
 		baseURL:      strings.TrimRight(baseURL, "/"),
 		signKey:      signKey,
+		trustedNet:   trustedNet,
 	}
 
 	maxID, _ := repo.GetMaxID()

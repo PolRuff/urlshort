@@ -12,6 +12,7 @@ import (
 type UserService interface {
 	GetUserUrls(ctx context.Context, userID uint32) ([]model.UserUrls, error)
 	DeleteUserUrls(ctx context.Context, userID uint32, shortIDs []string)
+	CountUsers(ctx context.Context) (int, error)
 }
 
 // userService is the concrete implementation of UserService
@@ -34,4 +35,9 @@ func (s *userService) DeleteUserUrls(ctx context.Context, userID uint32, shortID
 	if err := s.repo.Delete(ctx, userID, shortIDs); err != nil {
 		log.Error().Err(err).Msg("Failed to delete user URLs")
 	}
+}
+
+// CountUsers returns the total number of unique users who have shortened URLs
+func (s *userService) CountUsers(ctx context.Context) (int, error) {
+	return s.repo.CountUsers(ctx)
 }

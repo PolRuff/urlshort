@@ -11,6 +11,12 @@ type ShortenResponse struct {
 	Result string `json:"result"`
 }
 
+// StatsResponse represents the response format for /api/internal/stats
+type StatsResponse struct {
+	URLs  int `json:"urls"`
+	Users int `json:"users"`
+}
+
 // BatchShortenRequestItem represents a single item in the batch request
 type BatchShortenRequestItem struct {
 	CorrelationID string `json:"correlation_id"` // Идентификатор для сопоставления результата
