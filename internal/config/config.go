@@ -21,6 +21,7 @@ type Config struct {
 	AuditURL        string `mapstructure:"audit_url"`
 	EnableHTTPS     bool   `mapstructure:"enable_https"`
 	TrustedSubnet   string `mapstructure:"trusted_subnet"`
+	GRPCServerAddr  string `mapstructure:"grpc_server_address"`
 }
 
 // Load parses environment variables and command-line flags (from args) and returns application config.
@@ -44,6 +45,7 @@ func Load(args []string) (*Config, error) {
 		"audit_url",
 		"enable_https",
 		"trusted_subnet",
+		"grpc_server_address",
 	}
 	for _, key := range keys {
 		if v.IsSet(key) {
@@ -63,6 +65,7 @@ func Load(args []string) (*Config, error) {
 	fs.String("audit_url", "", "Audit log remote URL")
 	fs.BoolP("enable_https", "s", false, "Enable HTTPS")
 	fs.StringP("trusted_subnet", "t", "", "Trusted subnet in CIDR notation (e.g. 192.168.0.0/24)")
+	fs.StringP("grpc_server_address", "g", ":3200", "gRPC server address")
 	fs.StringP("config", "c", "", "Path to config file")
 
 	fs.SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {

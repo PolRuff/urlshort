@@ -21,6 +21,7 @@ func TestLoad_PriorityEnv(t *testing.T) {
 	t.Setenv("AUDIT_URL", "https://audit.example.com/logs")
 	t.Setenv("ENABLE_HTTPS", "true")
 	t.Setenv("TRUSTED_SUBNET", "192.168.0.0/22")
+	t.Setenv("GRPC_SERVER_ADDRESS", ":9091")
 
 	// Call Load with flags that should be overridden by env vars
 	cfg, err := Load([]string{
@@ -33,6 +34,7 @@ func TestLoad_PriorityEnv(t *testing.T) {
 		"--audit-url", "http://flag-audit.local",
 		"-s",
 		"-t", "198.51.100.14/24",
+		"-g", ":9092",
 	})
 	require.NoError(t, err, "Load should not return an error")
 
@@ -45,6 +47,7 @@ func TestLoad_PriorityEnv(t *testing.T) {
 	assert.Equal(t, "https://audit.example.com/logs", cfg.AuditURL)                                       // env takes precedence
 	assert.True(t, cfg.EnableHTTPS)                                                                       // env takes precedence
 	assert.Equal(t, "192.168.0.0/22", cfg.TrustedSubnet)                                                  // env takes precedence
+	assert.Equal(t, ":9091", cfg.GRPCServerAddr)                                                          // env takes precedence
 }
 
 func TestLoad_PriorityFlag(t *testing.T) {
@@ -59,6 +62,7 @@ func TestLoad_PriorityFlag(t *testing.T) {
 		"--audit-url", "http://flag-audit.local",
 		"-s",
 		"-t", "198.51.100.14/24",
+		"-g", ":9092",
 	})
 	require.NoError(t, err, "Load should not return an error")
 
@@ -71,6 +75,7 @@ func TestLoad_PriorityFlag(t *testing.T) {
 	assert.Equal(t, "http://flag-audit.local", cfg.AuditURL)
 	assert.True(t, cfg.EnableHTTPS)
 	assert.Equal(t, "198.51.100.14/24", cfg.TrustedSubnet)
+	assert.Equal(t, ":9092", cfg.GRPCServerAddr)
 }
 
 func TestLoad_Help(t *testing.T) {
@@ -99,6 +104,7 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "", cfg.AuditURL)
 	assert.False(t, cfg.EnableHTTPS)
 	assert.Equal(t, "", cfg.TrustedSubnet)
+	assert.Equal(t, ":3200", cfg.GRPCServerAddr)
 }
 
 func TestLoad_JSON(t *testing.T) {
@@ -114,7 +120,8 @@ func TestLoad_JSON(t *testing.T) {
 		"audit_file": "/tmp/flag_audit.log",
 		"audit_url": "http://flag-audit.local",
 		"enable_https": true,
-		"trusted_subnet": "172.16.0.1/12"
+		"trusted_subnet": "172.16.0.1/12",
+		"grpc_server_address": ":9093"
 	}`
 
 	require.NoError(t, os.WriteFile(configFile, []byte(jsonContent), 0644))
@@ -131,6 +138,7 @@ func TestLoad_JSON(t *testing.T) {
 	assert.Equal(t, "http://flag-audit.local", cfg.AuditURL)
 	assert.True(t, cfg.EnableHTTPS)
 	assert.Equal(t, "172.16.0.1/12", cfg.TrustedSubnet)
+	assert.Equal(t, ":9093", cfg.GRPCServerAddr)
 }
 
 func TestLoad_InvalidConfigPath(t *testing.T) {

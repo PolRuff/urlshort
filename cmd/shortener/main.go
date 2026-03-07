@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/PolRuff/urlshort/api"
 	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/config"
 	"github.com/PolRuff/urlshort/internal/handler"
@@ -20,6 +21,7 @@ import (
 	"github.com/PolRuff/urlshort/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
 
 	_ "net/http/pprof"
 )
@@ -147,6 +149,26 @@ func main() {
 		}
 	}()
 
+	// gRPC сервер
+	grpcServer := grpc.NewServer()
+	grpcHandler := handler.NewGRPCHandler(repo, auditManager, cfg.BaseURL, cfg.SecretKey)
+	api.RegisterShortenerServiceServer(grpcServer, grpcHandler)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		log.Debug().Msgf("gRPC server is running on %s", cfg.GRPCServerAddr)
+		lis, err := net.Listen("tcp", cfg.GRPCServerAddr)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to listen")
+			return
+		}
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Error().Err(err).Msg("gRPC server failed")
+		}
+	}()
+
 	// ждём завершения процедуры graceful shutdown
 	<-ctx.Done()
 	log.Info().Msg("Received shutdown signal, gracefully shutting down...")
@@ -160,6 +182,9 @@ func main() {
 	} else {
 		log.Debug().Msg("Server exited gracefully")
 	}
+
+	// Завершение gRPC сервера
+	grpcServer.GracefulStop()
 
 	// Дожидаемся завершения горутин
 	wg.Wait()
