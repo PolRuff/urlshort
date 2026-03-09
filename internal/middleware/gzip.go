@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/PolRuff/urlshort/internal/response"
 )
 
 // compressWriter wraps http.ResponseWriter and allows transparent compression of data
@@ -133,7 +135,7 @@ func GzipMiddleware(next http.Handler) http.Handler {
 		if sendsGzip {
 			cr, err := newCompressReader(r.Body)
 			if err != nil {
-				http.Error(w, fmt.Sprintf("Failed to read gzipped request body: %v", err), http.StatusBadRequest)
+				response.WriteError(w, fmt.Sprintf("Failed to read gzipped request body: %v", err), http.StatusBadRequest)
 				return
 			}
 			// Replace request body with the new one

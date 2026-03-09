@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/PolRuff/urlshort/internal/response"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ type mockHandlerGzip struct {
 func (h *mockHandlerGzip) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Failed to read body", http.StatusInternalServerError)
+		response.WriteError(w, "Failed to read body", http.StatusInternalServerError)
 		return
 	}
 

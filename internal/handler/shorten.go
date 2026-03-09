@@ -11,6 +11,7 @@ import (
 	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/PolRuff/urlshort/internal/repository"
+	"github.com/PolRuff/urlshort/internal/response"
 	"github.com/PolRuff/urlshort/internal/service"
 	"github.com/rs/zerolog/log"
 )
@@ -28,7 +29,7 @@ const maxRequestBodySize = 4096 // 4 KB — sufficient for any valid URL
 // shorten events to the configured audit sinks.
 func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") != "text/plain" {
-		http.Error(w, "Content-Type must be text/plain", http.StatusBadRequest)
+		response.WriteError(w, "Content-Type must be text/plain", http.StatusBadRequest)
 		return
 	}
 
@@ -39,9 +40,9 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var maxBytesErr *http.MaxBytesError
 		if errors.As(err, &maxBytesErr) {
-			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+			response.WriteError(w, "Request body too large", http.StatusRequestEntityTooLarge)
 		} else {
-			http.Error(w, "Failed to read request body", http.StatusBadRequest)
+			response.WriteError(w, "Failed to read request body", http.StatusBadRequest)
 		}
 		return
 	}
@@ -49,7 +50,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	originalURL := string(body)
 
 	if !service.IsValidURL(originalURL) {
-		http.Error(w, "Invalid URL", http.StatusBadRequest)
+		response.WriteError(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
 
@@ -78,7 +79,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		shortID, err = h.generateShortID()
 
 		if err != nil {
-			http.Error(w, "Failed to generate short ID", http.StatusInternalServerError)
+			response.WriteError(w, "Failed to generate short ID", http.StatusInternalServerError)
 			return
 		}
 
@@ -99,7 +100,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(existingShortURL))
 			return
 		}
-		http.Error(w, "Failed to save URL", http.StatusInternalServerError)
+		response.WriteError(w, "Failed to save URL", http.StatusInternalServerError)
 		return
 	}
 

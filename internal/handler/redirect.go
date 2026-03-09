@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/PolRuff/urlshort/internal/audit"
+	"github.com/PolRuff/urlshort/internal/response"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -21,7 +22,7 @@ import (
 func (h *Handler) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	shortID := chi.URLParam(r, "id")
 	if shortID == "" {
-		http.Error(w, "Empty ID", http.StatusBadRequest)
+		response.WriteError(w, "Empty ID", http.StatusBadRequest)
 		return
 	}
 
@@ -35,11 +36,11 @@ func (h *Handler) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	h.auditManager.Notify(auditEvent)
 
 	if !exists {
-		http.Error(w, "Short URL not found", http.StatusNotFound)
+		response.WriteError(w, "Short URL not found", http.StatusNotFound)
 		return
 	}
 	if deleted {
-		http.Error(w, "Short URL is deleted", http.StatusGone)
+		response.WriteError(w, "Short URL is deleted", http.StatusGone)
 		return
 	}
 
