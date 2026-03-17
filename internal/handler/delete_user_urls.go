@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/PolRuff/urlshort/internal/response"
 	"github.com/PolRuff/urlshort/internal/service"
 )
 
@@ -20,12 +21,12 @@ func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) 
 	userID, err := h.getUserID(r)
 
 	if errors.Is(err, ErrMissingUserID) {
-		w.WriteHeader(http.StatusUnauthorized)
+		response.WriteError(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	if r.Header.Get("Content-Type") != "application/json" {
-		http.Error(w, "Content-Type must be application/json", http.StatusBadRequest)
+		response.WriteError(w, "Content-Type must be application/json", http.StatusBadRequest)
 		return
 	}
 
@@ -36,20 +37,20 @@ func (h *Handler) DeleteUserUrlsHandler(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		var maxBytesErr *http.MaxBytesError
 		if errors.As(err, &maxBytesErr) {
-			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+			response.WriteError(w, "Request body too large", http.StatusRequestEntityTooLarge)
 		} else {
-			http.Error(w, "Failed to read request body", http.StatusBadRequest)
+			response.WriteError(w, "Failed to read request body", http.StatusBadRequest)
 		}
 		return
 	}
 
-	var shordIDs []string
-	if err := json.Unmarshal(body, &shordIDs); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+	var shortIDs []string
+	if err := json.Unmarshal(body, &shortIDs); err != nil {
+		response.WriteError(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	go h.userService.DeleteUserUrls(context.Background(), userID, shordIDs)
+	go h.userService.DeleteUserUrls(context.Background(), userID, shortIDs)
 
 	signature := service.SignUserID(userID, []byte(h.signKey))
 	http.SetCookie(w, &http.Cookie{

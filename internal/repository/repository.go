@@ -13,6 +13,8 @@ type Repository interface {
 	Get(ctx context.Context, shortID string) (string, bool, bool)
 	GetByUser(ctx context.Context, userID uint32) ([]model.UserUrls, error)
 	GetMaxID() (uint64, error)
+	CountURLs(ctx context.Context) (int, error)
+	CountUsers(ctx context.Context) (int, error)
 	CheckConnection(ctx context.Context) bool
 	Close()
 }

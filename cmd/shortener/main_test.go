@@ -23,7 +23,7 @@ func BenchmarkShorten(b *testing.B) {
 
 		var auditSinks []audit.Sink
 		auditManager := audit.NewManager(auditSinks...)
-		h := handler.New(repo, "http://localhost:8080", "test-key", auditManager)
+		h := handler.New(repo, "http://localhost:8080", "test-key", auditManager, nil)
 
 		r := chi.NewRouter()
 		r.Post("/", h.ShortenHandler)
@@ -53,7 +53,7 @@ func BenchmarkRedirect(b *testing.B) {
 
 	var auditSinks []audit.Sink
 	auditManager := audit.NewManager(auditSinks...)
-	h := handler.New(repo, "http://localhost:8080", "test-key", auditManager)
+	h := handler.New(repo, "http://localhost:8080", "test-key", auditManager, nil)
 
 	r := chi.NewRouter()
 	r.Post("/", h.ShortenHandler)

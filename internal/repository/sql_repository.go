@@ -99,7 +99,7 @@ func (r *SQLRepository) Delete(ctx context.Context, userID uint32, shortIDs []st
 }
 
 // Get retrieves the original URL by short ID
-func (r *SQLRepository) Get(ctx context.Context, shortID string) (orignal string, found bool, deleted bool) {
+func (r *SQLRepository) Get(ctx context.Context, shortID string) (original string, found bool, deleted bool) {
 	row := r.db.QueryRowContext(ctx, "SELECT original_url, is_deleted FROM shortened_urls WHERE short_url = $1", shortID)
 
 	var originalURL sql.NullString
@@ -157,6 +157,26 @@ func (r *SQLRepository) GetMaxID() (uint64, error) {
 	}
 
 	return 0, err
+}
+
+// CountURLs returns the total number of shortened URLs (excluding deleted ones)
+func (r *SQLRepository) CountURLs(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM shortened_urls WHERE is_deleted = false").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count URLs: %w", err)
+	}
+	return count, nil
+}
+
+// CountUsers returns the total number of unique users who have shortened URLs
+func (r *SQLRepository) CountUsers(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(DISTINCT user_id) FROM shortened_urls WHERE user_id IS NOT NULL").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count users: %w", err)
+	}
+	return count, nil
 }
 
 // CheckConnection verifies the database connection is alive.

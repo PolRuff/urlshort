@@ -59,6 +59,19 @@ func (r *MemoryRepository) GetMaxID() (uint64, error) {
 	return uint64(len(r.urls)), nil
 }
 
+// CountURLs returns the total number of shortened URLs
+func (r *MemoryRepository) CountURLs(ctx context.Context) (int, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.urls), nil
+}
+
+// CountUsers always returns 0 for in-memory repository (not implemented)
+func (r *MemoryRepository) CountUsers(ctx context.Context) (int, error) {
+	// TODO: implement user tracking in memory repository
+	return 0, nil
+}
+
 // CheckConnection always returns true for in-memory repository.
 func (r *MemoryRepository) CheckConnection(ctx context.Context) bool {
 	return true

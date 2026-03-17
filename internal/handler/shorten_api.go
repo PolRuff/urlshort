@@ -10,6 +10,7 @@ import (
 	"github.com/PolRuff/urlshort/internal/audit"
 	"github.com/PolRuff/urlshort/internal/model"
 	"github.com/PolRuff/urlshort/internal/repository"
+	"github.com/PolRuff/urlshort/internal/response"
 	"github.com/PolRuff/urlshort/internal/service"
 )
 
@@ -18,7 +19,7 @@ import (
 // Returns JSON: {"result": "http://localhost:8080/abc123"} with status 201
 func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") != "application/json" {
-		http.Error(w, "Content-Type must be application/json", http.StatusBadRequest)
+		response.WriteError(w, "Content-Type must be application/json", http.StatusBadRequest)
 		return
 	}
 
@@ -29,16 +30,16 @@ func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var maxBytesErr *http.MaxBytesError
 		if errors.As(err, &maxBytesErr) {
-			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+			response.WriteError(w, "Request body too large", http.StatusRequestEntityTooLarge)
 		} else {
-			http.Error(w, "Failed to read request body", http.StatusBadRequest)
+			response.WriteError(w, "Failed to read request body", http.StatusBadRequest)
 		}
 		return
 	}
 
 	var req model.ShortenRequest
 	if err := json.Unmarshal(body, &req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		response.WriteError(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
@@ -52,7 +53,7 @@ func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
 	h.auditManager.Notify(auditEvent)
 
 	if !service.IsValidURL(originalURL) {
-		http.Error(w, "Invalid URL", http.StatusBadRequest)
+		response.WriteError(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
 
@@ -61,7 +62,7 @@ func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
 		shortID, err = h.generateShortID()
 
 		if err != nil {
-			http.Error(w, "Failed to generate short ID", http.StatusInternalServerError)
+			response.WriteError(w, "Failed to generate short ID", http.StatusInternalServerError)
 			return
 		}
 
@@ -77,29 +78,20 @@ func (h *Handler) ShortenAPIHandler(w http.ResponseWriter, r *http.Request) {
 		var conflictErr *repository.ConflictError
 		if errors.As(err, &conflictErr) {
 			existingShortURL := h.baseURL + "/" + conflictErr.ExistingShortID
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusConflict)
 			resp := model.ShortenResponse{
 				Result: existingShortURL,
 			}
-			if err := json.NewEncoder(w).Encode(resp); err != nil {
-				http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-			}
+			response.WriteJSON(w, resp, http.StatusConflict)
 			return
 		}
-		http.Error(w, "Failed to save URL", http.StatusInternalServerError)
+		response.WriteError(w, "Failed to save URL", http.StatusInternalServerError)
 		return
 	}
 
 	shortenedURL := h.baseURL + "/" + shortID
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 
 	resp := model.ShortenResponse{
 		Result: shortenedURL,
 	}
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
-	}
+	response.WriteJSON(w, resp, http.StatusCreated)
 }

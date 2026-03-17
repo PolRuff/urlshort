@@ -61,6 +61,36 @@ func (mr *MockRepositoryMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRepository)(nil).Close))
 }
 
+// CountURLs mocks base method.
+func (m *MockRepository) CountURLs(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountURLs", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountURLs indicates an expected call of CountURLs.
+func (mr *MockRepositoryMockRecorder) CountURLs(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountURLs", reflect.TypeOf((*MockRepository)(nil).CountURLs), ctx)
+}
+
+// CountUsers mocks base method.
+func (m *MockRepository) CountUsers(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountUsers", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountUsers indicates an expected call of CountUsers.
+func (mr *MockRepositoryMockRecorder) CountUsers(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountUsers", reflect.TypeOf((*MockRepository)(nil).CountUsers), ctx)
+}
+
 // Delete mocks base method.
 func (m *MockRepository) Delete(ctx context.Context, userID uint32, shortIDs []string) error {
 	m.ctrl.T.Helper()
